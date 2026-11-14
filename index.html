@@ -385,7 +385,7 @@ function renderDefis(soft){
     <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATS().map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
     <div class="row" style="align-items:center;margin-bottom:12px"><span style="flex:1;font-weight:500">Nombre de questions</span>${[5,10,15].map(n=>`<button class="chip ${newDefi.nb===n?'on':''}" onclick="newDefi.nb=${n};renderDefis()">${n}</button>`).join('')}</div>
     <button class="btn full" onclick="createDefi()">Créer le défi</button>
-    <p class="meta" style="margin:8px 0 0">📚 ${GS.nb_questions} question${GS.nb_questions>1?'s':''} dans la banque du groupe.</p>
+    <p class="meta" style="margin:8px 0 0">📚 ${GS.nb_questions} question${GS.nb_questions>1?'s':''} disponible${GS.nb_questions>1?'s':''}${GS.nb_du_jour?` · ⚡ ${GS.nb_du_jour} nouvelle${GS.nb_du_jour>1?'s':''} aujourd'hui`:''}.</p>
   </div>`}
   <div class="card">
     <h2>🏆 Classement de la semaine</h2>
@@ -555,13 +555,19 @@ async function renderReviser(){
   if(RV.view==='banque')return renderBanque();
   if(!RV.list){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';await loadQuestions();if(TAB!=='reviser'||RV.view!=='home')return;}
   const L=RV.list,count=id=>L.filter(q=>q.matiere===id).length;
-  const mine=L.filter(q=>q.moi).length;
+  const mine=L.filter(q=>q.moi).length,off=L.filter(q=>q.officielle).length;
+  const duJour=L.filter(q=>q.officielle&&q.jour===dayStr());
   $('#main').innerHTML=`
   <h1>Réviser 📚</h1>
-  <p class="sub">La banque du groupe contient <b>${L.length}</b> question${L.length>1?'s':''} écrite${L.length>1?'s':''} par vous toutes (dont ${mine} par toi).</p>
+  <p class="sub"><b>${L.length}</b> question${L.length>1?'s':''} disponible${L.length>1?'s':''} : ${off} ⚡ Révizz et ${L.length-off} écrite${L.length-off>1?'s':''} par le groupe (dont ${mine} par toi).</p>
+  ${duJour.length?`<div class="card" style="background:linear-gradient(135deg,#6D4AFF,#E94BA8);border:none;color:#fff">
+    <h2>⚡ Les questions du jour</h2>
+    <p style="margin:0 0 12px;font-size:15px">${duJour.length} nouvelle${duJour.length>1?'s':''} question${duJour.length>1?'s':''} pour ton niveau, préparée${duJour.length>1?'s':''} cette nuit.</p>
+    <button class="btn full" style="background:#fff;color:#6D4AFF" onclick="startQuiz(true)">Faire le quiz du jour</button>
+  </div>`:''}
   <div class="card" style="background:var(--violet-l);border:none">
     <h2>✍️ Ajouter une question</h2>
-    <p style="margin:0 0 12px;font-size:15px">Écrire une question, c'est déjà réviser ! Prends ta leçon et transforme-la en QCM pour tes copines (+3 ⭐).</p>
+    <p style="margin:0 0 12px;font-size:15px">Écrire une question, c'est déjà réviser ! Prends ta leçon et transforme-la en QCM pour le groupe (+3 ⭐).</p>
     <button class="btn full" onclick="RV.view='ajout';renderReviser()">Écrire une question</button>
   </div>
   <div class="card">
@@ -572,8 +578,8 @@ async function renderReviser(){
   </div>
   <button class="btn ghost full" onclick="RV.view='banque';renderReviser()">📋 Voir toutes les questions</button>`;
 }
-function startQuiz(){
-  const pool=RV.list.filter(q=>!RV.filtre||q.matiere===RV.filtre).sort(()=>Math.random()-.5).slice(0,10);
+function startQuiz(duJour){
+  const pool=(duJour?RV.list.filter(q=>q.officielle&&q.jour===dayStr()):RV.list.filter(q=>!RV.filtre||q.matiere===RV.filtre)).sort(()=>Math.random()-.5).slice(0,10);
   if(!pool.length){toast('Pas encore de questions ici');return;}
   RV.quiz={qs:pool,i:0,rep:null,ok:0};RV.view='quiz';renderReviser();
 }
@@ -634,7 +640,7 @@ function renderBanque(){
   $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="RV.view='home';renderReviser()">← Retour</button>
   <h1>📋 Banque du groupe</h1>
   <div class="card">${L.length?L.map(q=>`<div class="qitem"><div>${tag(q.matiere)}<span class="meta">${esc(q.avatar||'')} ${esc(q.auteur||'?')}</span></div><div style="font-weight:500;margin:4px 0">${esc(q.question)}</div><div class="meta">✓ ${esc(q.choix[q.bonne])}</div>
-   <button class="mini" style="color:var(--soft)" onclick="reportQ('${q.id}').then(()=>{RV.list=null;RV.view='home';renderReviser()})">${q.moi?'🗑️ Supprimer':'⚑ Signaler'}</button></div>`).join(''):'<p class="empty">Aucune question pour le moment.</p>'}</div>`;
+   <button class="mini" style="color:var(--soft)" onclick="reportQ('${q.id}').then(()=>{RV.list=null;RV.view='home';renderReviser()})">${q.moi?'🗑️ Supprimer':(q.officielle&&GS&&GS.groupe.admin_id===G.membre_id)?'🙈 Masquer pour le groupe':'⚑ Signaler'}</button></div>`).join(''):'<p class="empty">Aucune question pour le moment.</p>'}</div>`;
 }
 
 /* ===== AGENDA (sur l'appareil) ===== */
