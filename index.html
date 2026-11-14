@@ -535,9 +535,9 @@ function msgMenu(id){
   const me=m.membre_id===G.membre_id,admin=GS&&GS.groupe.admin_id===G.membre_id;
   modal(`<h2>Message de ${esc(m.pseudo)}</h2><div class="card" style="font-size:15px">${esc(m.texte)}</div>
   ${me?`<button class="btn light full" onclick="reportMsg(${id})">🗑️ Supprimer mon message</button>`:
-  `<button class="btn coral full" onclick="reportMsg(${id})">⚑ ${admin?'Supprimer ce message':'Signaler ce message'}</button>
+  `<button class="btn coral full" onclick="reportMsg(${id})">⚑ Signaler ce message</button>
    <button class="btn light full" style="margin-top:10px" onclick="blockUser('${m.membre_id}')">🙈 Ne plus voir les messages de ${esc(m.pseudo)}</button>
-   ${admin?'':'<p class="meta" style="margin-top:10px">Un message signalé par 2 personnes est masqué pour tout le groupe. Si quelqu\'un te harcèle, parles-en à un adulte. Tu peux aussi appeler le 3020 (gratuit).</p>'}`}`);
+   ${'<p class="meta" style="margin-top:10px">Un message signalé par 2 personnes est masqué pour tout le groupe. Si quelqu\'un te harcèle, parles-en à un adulte. Tu peux aussi appeler le 3020 (gratuit).</p>'}`}`);
 }
 function askDeleteMsg(id){
   const m=MSGS.find(x=>x.id===id);if(!m)return;
