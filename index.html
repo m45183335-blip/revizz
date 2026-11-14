@@ -499,11 +499,11 @@ const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏','👍','
 function msgHtml(m){
   if(BLOQ.includes(m.membre_id))return '';
   const me=m.membre_id===G.membre_id;
-  return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w">${esc(m.avatar)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span><button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button></div>`;
+  return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w">${esc(m.avatar)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span>${me?`<button class="flag" style="opacity:1;font-size:17px;padding-left:8px" title="Supprimer mon message" aria-label="Supprimer mon message" onclick="askDeleteMsg(${m.id})">🗑️</button>`:`<button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button>`}</div>`;
 }
 function renderChat(){
   $('#main').innerHTML=`
-  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil(le) 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte.</div></div>
+  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil(le) 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte. Tu peux supprimer tes propres messages avec 🗑️.</div></div>
   <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋</p>'}</div><div id="chatEnd"></div>
   <div class="composer">
     <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
@@ -539,9 +539,14 @@ function msgMenu(id){
    <button class="btn light full" style="margin-top:10px" onclick="blockUser('${m.membre_id}')">🙈 Ne plus voir les messages de ${esc(m.pseudo)}</button>
    ${admin?'':'<p class="meta" style="margin-top:10px">Un message signalé par 2 personnes est masqué pour tout le groupe. Si quelqu\'un te harcèle, parles-en à un adulte. Tu peux aussi appeler le 3020 (gratuit).</p>'}`}`);
 }
+function askDeleteMsg(id){
+  const m=MSGS.find(x=>x.id===id);if(!m)return;
+  modal(`<h2>Supprimer ce message ?</h2><div class="card" style="font-size:15px">${esc(m.texte)}</div><p class="sub">Il disparaîtra pour tout le groupe.</p>
+  <div class="row"><button class="btn light" onclick="closeModal()">Annuler</button><button class="btn coral" onclick="reportMsg(${id})">🗑️ Supprimer</button></div>`);
+}
 async function reportMsg(id){
   try{const r=await call('signaler_message',{p_message:id});closeModal();
-    if(r.masque){MSGS=MSGS.filter(m=>m.id!==id);const e=document.querySelector(`.msg[data-id="${id}"]`);e&&e.remove();toast('Message retiré');}
+    if(r.masque){MSGS=MSGS.filter(m=>m.id!==id);const e=document.querySelector(`.msg[data-id="${id}"]`);e&&e.remove();toast('Message supprimé');}
     else toast('Merci, le message a été signalé 💜');}
   catch(e){toast(errMsg(e));}
 }
