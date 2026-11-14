@@ -383,7 +383,8 @@ function renderDefis(soft){
     <h2>⚡ Lancer un défi en direct</h2>
     <p class="sub" style="margin:0 0 6px">Tout le monde répond en même temps. Plus tu réponds vite et juste, plus tu gagnes de points !</p>
     <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATS().map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
-    <div class="row" style="align-items:center;margin-bottom:12px"><span style="flex:1;font-weight:500">Nombre de questions</span>${[5,10,15].map(n=>`<button class="chip ${newDefi.nb===n?'on':''}" onclick="newDefi.nb=${n};renderDefis()">${n}</button>`).join('')}</div>
+    <div class="row" style="align-items:center;margin-bottom:12px"><span style="flex:1;font-weight:500">Nombre de questions</span>${[10,20,50].map(n=>`<button class="chip ${newDefi.nb===n?'on':''}" onclick="newDefi.nb=${n};renderDefis()">${n}</button>`).join('')}</div>
+    ${GS.nb_questions<newDefi.nb?`<p class="meta" style="margin:0 0 10px">Il n'y a que ${GS.nb_questions} question${GS.nb_questions>1?'s':''} disponible${GS.nb_questions>1?'s':''} : le défi les utilisera toutes.</p>`:''}
     <button class="btn full" onclick="createDefi()">Créer le défi</button>
     <p class="meta" style="margin:8px 0 0">📚 ${GS.nb_questions} question${GS.nb_questions>1?'s':''} disponible${GS.nb_questions>1?'s':''}${GS.nb_du_jour?` · ⚡ ${GS.nb_du_jour} nouvelle${GS.nb_du_jour>1?'s':''} aujourd'hui`:''}.</p>
   </div>`}
