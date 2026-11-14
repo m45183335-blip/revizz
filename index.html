@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Révizz</title>
+<meta name="description" content="Révise avec tes copines : quiz, défis en direct et classement de la semaine.">
+<meta name="theme-color" content="#6D4AFF">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Révizz">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FBF6EF;--card:#fff;--ink:#2E2A3B;--soft:#6E6880;--line:#ECE4D8;--violet:#7B6CF6;--violet-l:#EEEBFF;--mint:#2FB38A;--mint-l:#E3F6EF;--coral:#F2785C;--coral-l:#FDEBE5;--sun:#F4B740;--sun-l:#FFF4DB;--sky:#4BA3E3;--sky-l:#E4F2FC;--r:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Lexend',system-ui,sans-serif;font-size:17px;line-height:1.5}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:16px;color:var(--ink)}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px calc(110px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.hd{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px}
+.logo{font-weight:700;font-size:20px;flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.logo .mark{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6D4AFF,#E94BA8);font-size:17px}
+.logo .brand{font-weight:700;letter-spacing:-.5px;background:linear-gradient(90deg,#6D4AFF,#E94BA8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo small{font-weight:500;font-size:14px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:600;font-size:15px}
+.iconbtn{background:var(--card);border:1px solid var(--line);border-radius:999px;width:40px;height:40px;font-size:18px;flex:none}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.nv{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.nv button{background:none;padding:9px 0 11px;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--soft);font-weight:500;font-size:13px;position:relative}
+.nv button span{font-size:25px;line-height:1}
+.nv button.on{color:var(--violet)}
+.nv .dot{position:absolute;top:6px;left:calc(50% + 8px);background:var(--coral);color:#fff;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700}
+h1{font-size:24px;margin:18px 0 6px} h2{font-size:19px;margin:0 0 10px}
+.sub{color:var(--soft);margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin:14px 0}
+.btn{background:var(--violet);color:#fff;border-radius:14px;padding:13px 18px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px}
+.btn.full{width:100%} .btn.ghost{background:var(--violet-l);color:var(--violet)} .btn.mint{background:var(--mint)} .btn.coral{background:var(--coral)} .btn.light{background:#F3EFE8;color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap} .row>.btn{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.chip{background:#F3EFE8;border-radius:999px;padding:9px 14px;font-weight:500;font-size:15px}
+.chip.on{background:var(--violet);color:#fff}
+textarea,input[type=text],input[type=date],select{width:100%;border:2px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;outline:none}
+textarea:focus,input:focus,select:focus{border-color:var(--violet)}
+label.l{display:block;font-weight:600;margin:12px 0 6px}
+.banner{border-radius:var(--r);padding:14px 16px;margin:14px 0;display:flex;gap:12px;align-items:flex-start}
+.banner.sun{background:var(--sun-l)}.banner.sky{background:var(--sky-l)}.banner.coral{background:var(--coral-l)}.banner.mint{background:var(--mint-l)}.banner.violet{background:var(--violet-l)}
+.banner .ic{font-size:24px;line-height:1.2}
+.avatars{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:6px 0}
+.av{font-size:28px;background:#F3EFE8;border-radius:14px;padding:6px 0;border:2px solid transparent}
+.av.on{border-color:var(--violet);background:var(--violet-l)}
+.check{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:15px}
+.check input{width:22px;height:22px;flex:none;margin-top:2px}
+.rank{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.rank:first-child{border-top:none}
+.rank .n{width:28px;text-align:center;font-weight:700;color:var(--soft)}
+.rank .a{font-size:26px;position:relative}
+.rank .a i{position:absolute;right:-2px;bottom:2px;width:10px;height:10px;border-radius:50%;background:var(--mint);border:2px solid #fff}
+.rank .p{flex:1;font-weight:500}
+.rank .s{font-weight:700}
+.empty{color:var(--soft);text-align:center;padding:16px 0}
+.center{text-align:center}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.msg{max-width:84%;padding:9px 13px;border-radius:18px;word-wrap:break-word;position:relative}
+.msg.them{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:6px}
+.msg.me{background:var(--violet);color:#fff;align-self:flex-end;border-bottom-right-radius:6px}
+.msg .w{font-size:13px;font-weight:600;color:var(--violet)}
+.msg .t{font-size:11px;opacity:.6;margin-left:6px}
+.msg .flag{background:none;font-size:13px;opacity:.5;padding:0 0 0 6px}
+.composer{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom));background:var(--bg);padding:8px 0}
+.composer .in{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{min-height:50px;max-height:140px}
+.send{background:var(--violet);color:#fff;border-radius:14px;width:54px;height:50px;font-size:22px;flex:none}
+.reacts{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto}
+.reacts button{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:18px;flex:none}
+/* défi */
+.qbar{height:10px;background:#F3EFE8;border-radius:5px;overflow:hidden;margin:10px 0}
+.qbar i{display:block;height:100%;background:var(--violet);transition:width .25s linear}
+.qtext{font-size:22px;font-weight:600;text-align:center;margin:18px 0}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ans{color:#fff;border-radius:16px;padding:18px 12px;min-height:90px;font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;text-align:left}
+.ans .sh{font-size:22px;flex:none}
+.ans.c0{background:#E8566B}.ans.c1{background:#3D8FD9}.ans.c2{background:#E8A42C}.ans.c3{background:#2FA77F}
+.ans.dim{opacity:.35}.ans.pick{outline:4px solid var(--ink);outline-offset:2px}
+.ans.good{opacity:1;outline:4px solid var(--mint);outline-offset:2px}
+.big{font-size:44px;text-align:center;margin:6px 0}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:20px 0}
+.podium div{text-align:center;flex:1;max-width:120px}
+.podium .blk{border-radius:12px 12px 0 0;color:#fff;font-weight:700;font-size:22px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px}
+/* quiz */
+.qopt{display:block;width:100%;text-align:left;background:#F7F3EC;border:2px solid transparent;border-radius:14px;padding:12px 14px;margin:8px 0;font-weight:500}
+.qopt.ok{background:var(--mint-l);border-color:var(--mint)} .qopt.ko{background:var(--coral-l);border-color:var(--coral)}
+.expl{font-size:15px;color:var(--soft);margin:6px 0 12px}
+.qitem{padding:12px 0;border-top:1px solid var(--line)} .qitem:first-child{border-top:none}
+.meta{font-size:14px;color:var(--soft)}
+.mini{background:none;color:var(--violet);font-weight:600;font-size:14px;padding:4px 0}
+.tag{display:inline-block;border-radius:8px;padding:1px 8px;font-size:13px;font-weight:600;margin-right:6px}
+/* agenda */
+.task{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)} .task:first-child{border-top:none}
+.cb{width:30px;height:30px;border-radius:10px;border:2px solid var(--line);background:#fff;flex:none;color:#fff;font-size:16px}
+.cb.on{background:var(--mint);border-color:var(--mint)}
+.task .x{flex:1} .task.done .txt{text-decoration:line-through;color:var(--soft)}
+.tbig{font-size:52px;font-weight:700;text-align:center;margin:4px 0}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(46,42,59,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(30px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:24px}}
+.sheet .xb{float:right;background:#F3EFE8;border-radius:999px;width:36px;height:36px;font-size:18px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;z-index:60;font-size:15px;max-width:90%;text-align:center}
+.codebox{font-size:34px;font-weight:700;letter-spacing:6px;text-align:center;background:var(--violet-l);color:var(--violet);border-radius:16px;padding:12px;margin:10px 0}
+.dots span{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--soft);margin-right:4px;animation:b 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,100%{opacity:.25}50%{opacity:1}}
+.confetti{position:fixed;top:-20px;font-size:24px;z-index:70;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <div class="logo"><span class="mark">⚡</span><span class="brand">Révizz</span> <small id="gname" onclick="openGroups()" style="cursor:pointer"></small></div>
+  <button class="pill" id="mypts" onclick="go('defis')" style="display:none"></button>
+  <button class="iconbtn" onclick="openSettings()" aria-label="Réglages">⚙️</button>
+</div></header>
+<div class="wrap" id="main"><p class="empty" style="margin-top:40px">Chargement…</p></div>
+<nav id="nav" style="display:none"><div class="nv">
+  <button data-t="defis" onclick="go('defis')"><span>🏆</span>Défis</button>
+  <button data-t="chat" onclick="go('chat')"><span>💬</span>Discussion<b class="dot" id="unread" style="display:none"></b></button>
+  <button data-t="reviser" onclick="go('reviser')"><span>📚</span>Réviser</button>
+  <button data-t="agenda" onclick="go('agenda')"><span>📅</span>Agenda</button>
+</div></nav>
+
+<script>
+/* ===== configuration du serveur ===== */
+const API_URL = 'https://fbhhdyamgltswycweuea.supabase.co';
+const API_KEY = 'sb_publishable_xe-1hVpfX1IAT0RtALPY2g_tzGI-LGn';
+
+/* ===== utilitaires ===== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const z=n=>String(n).padStart(2,'0');
+const dayStr=(d=new Date())=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+const addDays=(s,n)=>{const[y,m,d]=s.split('-').map(Number);return dayStr(new Date(y,m-1,d+n));};
+function frDate(s){const t=dayStr();if(s===t)return"aujourd'hui";if(s===addDays(t,1))return'demain';if(s===addDays(t,-1))return'hier';const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});}
+const hhmm=iso=>{const d=new Date(iso);return z(d.getHours())+':'+z(d.getMinutes());};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function toast(t,ms=2800){document.querySelectorAll('.toast').forEach(e=>e.remove());const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),ms);}
+const LS={get(k,d){try{const v=localStorage.getItem('hd_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('hd_'+k,JSON.stringify(v));}catch(e){}}};
+function confetti(){const e=['🎉','⭐','✨','🎊','💜','🏆'];for(let i=0;i<28;i++){const c=document.createElement('div');c.className='confetti';c.textContent=e[i%e.length];c.style.left=Math.random()*100+'vw';c.style.animationDuration=(2+Math.random()*2)+'s';c.style.animationDelay=(Math.random()*.6)+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),5000);}}
+
+const MATIERES=[{id:'maths',n:'Maths',e:'🔢',c:'#7B6CF6'},{id:'francais',n:'Français',e:'📖',c:'#F2785C'},{id:'anglais',n:'Anglais',e:'🇬🇧',c:'#4BA3E3'},{id:'histgeo',n:'Histoire-Géo',e:'🌍',c:'#C98A2B'},{id:'svt',n:'SVT',e:'🌱',c:'#2FB38A'},{id:'physique',n:'Physique-Chimie',e:'⚗️',c:'#9A5BD6'},{id:'langue2',n:'LV2',e:'💬',c:'#E0567A'},{id:'techno',n:'Techno',e:'⚙️',c:'#5B7A8C'},{id:'autre',n:'Culture G',e:'✨',c:'#6E6880'}];
+const M=id=>MATIERES.find(m=>m.id===id)||MATIERES[MATIERES.length-1];
+const tag=id=>{const m=M(id);return `<span class="tag" style="background:${m.c}22;color:${m.c}">${m.e} ${esc(m.n)}</span>`;};
+const AVATARS=['😎','🔥','⚡','💎','👑','🎧','🎮','🛹','🏀','⚽','🎤','📸','🎨','🌙','🌈','🦋','🐺','🍕'];
+
+/* ===== serveur ===== */
+const ERR={
+  acces_refuse:"Ton accès à ce groupe n'est plus valide.",exclu:"Tu as été retirée de ce groupe par son administratrice.",
+  mot_blessant:"Ce texte contient un mot qui peut blesser. Reformule gentiment 💜",
+  info_perso:"Pour ta sécurité : pas de numéro, d'adresse, d'e-mail ni de réseau social ici.",
+  lien:"Les liens ne sont pas autorisés.",trop_vite:"Doucement 😄 attends quelques secondes.",trop_long:"Message trop long (300 caractères max).",vide:"Le message est vide.",
+  pseudo_pris:"Ce pseudo est déjà pris dans ce groupe.",pseudo_invalide:"Ton pseudo doit faire entre 2 et 20 caractères.",nom_invalide:"Le nom du groupe doit faire entre 1 et 40 caractères.",
+  code_inconnu:"Ce code de groupe n'existe pas. Vérifie-le !",groupe_plein:"Ce groupe est complet (40 personnes).",
+  pas_assez_questions:"Il faut au moins 3 questions dans la banque (pour cette matière) pour lancer un défi. Ajoutez-en dans « Réviser » !",
+  defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
+  trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
+  introuvable:"Introuvable (déjà supprimé ?).",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",reseau:"Pas de connexion internet 📶 Réessaie."};
+const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
+async function rpc(fn,args){
+  let r;
+  try{r=await fetch(API_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json','apikey':API_KEY},API_KEY.startsWith('sb_')?{}:{'Authorization':'Bearer '+API_KEY}),body:JSON.stringify(args)});}
+  catch(e){throw{code:'reseau'};}
+  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+  if(!r.ok)throw{code:(j&&j.message)||'erreur'};
+  return j;
+}
+function call(fn,extra){if(!G)throw{code:'acces_refuse'};return rpc(fn,Object.assign({p_membre:G.membre_id,p_token:G.token},extra||{})).catch(e=>{if(e.code==='acces_refuse'||e.code==='exclu'){toast(errMsg(e),5000);leaveLocal();}throw e;});}
+function newToken(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');}
+
+/* ===== état ===== */
+let P=LS.get('profil',null);         // {pseudo, avatar}
+let GROUPS=LS.get('groupes',null);  // [{membre_id, token, groupe_id, code, nom, seen}]
+if(!GROUPS){const old=LS.get('groupe',null);GROUPS=old?[old]:[];}
+let G=GROUPS.find(g=>g.membre_id===LS.get('courant',null))||GROUPS[0]||null;
+let JOINING=false;                   // écran « rejoindre / créer » ouvert alors qu'on a déjà un groupe
+const MAX_GROUPES=6;
+function saveGroups(){LS.set('groupes',GROUPS);LS.set('courant',G?G.membre_id:null);}
+let AG=LS.get('agenda',{items:[]});
+let BLOQ=LS.get('bloques',[]);
+let GS=null;                         // état du groupe
+let MSGS=[],lastMsg=0,seenMsg=G?(G.seen||0):0;
+let TAB='defis';
+function resetGroupState(){GS=null;MSGS=[];lastMsg=0;seenMsg=G?(G.seen||0):0;if(DF)clearTimeout(DF.loop);DF=null;RV.list=null;RV.view='home';}
+function leaveLocal(){const id=G&&G.membre_id;GROUPS=GROUPS.filter(g=>g.membre_id!==id);G=GROUPS[0]||null;saveGroups();resetGroupState();TAB='defis';go('defis');}
+function switchGroup(mid){const g=GROUPS.find(x=>x.membre_id===mid);if(!g)return;G=g;JOINING=false;saveGroups();resetGroupState();closeModal();TAB='defis';go('defis');poll();}
+function openGroups(){
+  if(!P||!P.ok)return;
+  modal(`<h2>👭 Mes groupes</h2>
+  ${GROUPS.map(g=>`<button class="btn ${G&&g.membre_id===G.membre_id?'':'light'} full" style="margin-bottom:10px;justify-content:space-between" onclick="switchGroup('${g.membre_id}')"><span>${esc(g.nom)}</span><span>${G&&g.membre_id===G.membre_id?'✓':'→'}</span></button>`).join('')||'<p class="empty">Tu n\'es dans aucun groupe.</p>'}
+  ${GROUPS.length<MAX_GROUPES?`<button class="btn ghost full" onclick="closeModal();JOINING=true;TAB='defis';go('defis')">➕ Rejoindre ou créer un groupe</button>`:`<p class="meta center">Maximum ${MAX_GROUPES} groupes.</p>`}`);
+}
+
+/* ===== navigation ===== */
+function go(t){TAB=t;document.querySelectorAll('.nv button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));render();window.scrollTo(0,0);if(t==='chat'){markSeen();setTimeout(()=>{const c=$('#chatEnd');c&&c.scrollIntoView();},30);}pollSoon();}
+function render(){
+  const inv=new URLSearchParams(location.search).get('code');
+  $('#nav').style.display=(P&&P.ok)?'':'none';
+  $('#gname').textContent=G?'· '+G.nom+(GROUPS.length>1?' ▾':''):'';
+  refreshPts();
+  if(!P||!P.ok)return renderWelcome();
+  if(TAB==='agenda')return renderAgenda();
+  if(!G||JOINING)return renderJoin(inv);
+  if(TAB==='defis')return DF?renderDefi(true):renderDefis();
+  if(TAB==='chat')return renderChat();
+  if(TAB==='reviser')return renderReviser();
+}
+function refreshPts(){const b=$('#mypts');if(G&&GS){const me=GS.membres.find(m=>m.id===G.membre_id);if(me){b.style.display='';b.textContent='⭐ '+me.semaine;return;}}b.style.display='none';}
+
+/* ===== bienvenue ===== */
+let W={avatar:'😎'};
+function renderWelcome(){
+  $('#main').innerHTML=`
+  <h1>Bienvenue sur Révizz ⚡</h1>
+  <p class="sub">Révise avec tes copines : crée des questions, lancez des défis en direct et grimpez dans le classement de la semaine !</p>
+  <div class="card">
+    <label class="l">Choisis ton pseudo</label>
+    <input type="text" id="wPseudo" maxlength="20" placeholder="Ex. : Léa_licorne" value="${esc(W.pseudo||'')}">
+    <p class="meta" style="margin:6px 0 0">N'utilise pas ton nom de famille.</p>
+    <label class="l">Ton avatar</label>
+    <div class="avatars">${AVATARS.map(a=>`<button class="av ${W.avatar===a?'on':''}" onclick="W.pseudo=$('#wPseudo').value;W.avatar='${a}';renderWelcome()">${a}</button>`).join('')}</div>
+  </div>
+  <div class="card">
+    <h2>📜 Les règles du groupe</h2>
+    <ul style="margin:0 0 10px;padding-left:20px;font-size:15px">
+      <li>Je suis gentille avec tout le monde, même quand je gagne ou je perds.</li>
+      <li>Je ne partage jamais mon adresse, mon numéro, mes réseaux sociaux ni de photos.</li>
+      <li>Si un message me met mal à l'aise, je le signale ⚑ et j'en parle à un adulte.</li>
+      <li>Je n'invite que des personnes que je connais en vrai.</li>
+    </ul>
+    <label class="check"><input type="checkbox" id="wRegles"> J'accepte les règles du groupe.</label>
+    <label class="check"><input type="checkbox" id="wParents"> Mes parents sont d'accord pour que j'utilise Révizz.</label>
+  </div>
+  <button class="btn full" onclick="finishWelcome()">C'est parti ! 🚀</button>
+  <p class="meta center" style="margin-top:12px">Aucune adresse e-mail demandée. Seuls ton pseudo, ton avatar, tes questions et tes messages sont enregistrés.</p>`;
+}
+function finishWelcome(){
+  const ps=$('#wPseudo').value.trim();
+  if(ps.length<2){toast('Ton pseudo doit faire au moins 2 caractères');return;}
+  if(!$('#wRegles').checked||!$('#wParents').checked){toast('Coche les deux cases pour continuer 🙂');return;}
+  P={pseudo:ps,avatar:W.avatar,ok:true};LS.set('profil',P);TAB='defis';render();
+}
+
+/* ===== rejoindre / créer un groupe ===== */
+function renderJoin(inv){
+  $('#main').innerHTML=`
+  ${GROUPS.length?`<button class="mini" style="margin-top:14px" onclick="JOINING=false;history.replaceState(null,'',location.pathname);render()">← Retour à mon groupe</button>`:''}
+  <h1>${GROUPS.length?'Un autre groupe ?':`Salut ${esc(P.avatar)} ${esc(P.pseudo)} !`}</h1>
+  <p class="sub">${GROUPS.length?'Tu peux faire partie de plusieurs groupes (classe, club, cousines…).':'Rejoins le groupe de tes copines ou crée le tien.'}</p>
+  ${GROUPS.length>=MAX_GROUPES?`<div class="banner sun"><div class="ic">✋</div><div>Tu es déjà dans ${MAX_GROUPES} groupes, c'est le maximum. Quitte-en un dans ⚙️ pour en rejoindre un autre.</div></div>`:''}
+  <div class="card">
+    <h2>🔑 Rejoindre un groupe</h2>
+    <input type="text" id="jCode" maxlength="6" placeholder="Code à 6 caractères" value="${esc(inv||'')}" style="text-transform:uppercase;letter-spacing:4px;font-weight:700;font-size:20px;text-align:center">
+    <button class="btn full" style="margin-top:12px" onclick="joinGroup()">Rejoindre</button>
+  </div>
+  <div class="card">
+    <h2>✨ Créer un groupe</h2>
+    <input type="text" id="cNom" maxlength="40" placeholder="Nom du groupe, ex. : Les 5e B">
+    <label class="l">Code de création</label>
+    <input type="text" id="cSecret" maxlength="30" placeholder="Demande-le à un parent 🔐" autocomplete="off" style="text-transform:uppercase">
+    <p class="meta" style="margin:6px 0 0">Pour créer un groupe, il faut le code secret donné par un parent.</p>
+    <button class="btn ghost full" style="margin-top:12px" onclick="createGroup()">Créer et inviter mes copines</button>
+  </div>`;
+}
+async function joinGroup(){
+  const code=$('#jCode').value.trim().toUpperCase();if(code.length!==6){toast('Le code fait 6 caractères');return;}
+  if(GROUPS.length>=MAX_GROUPES){toast('Maximum '+MAX_GROUPES+' groupes');return;}
+  if(GROUPS.some(g=>g.code===code)){toast('Tu es déjà dans ce groupe 😉');const g=GROUPS.find(g=>g.code===code);switchGroup(g.membre_id);return;}
+  const token=newToken();
+  try{const r=await rpc('rejoindre_groupe',{p_code:code,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token});setGroup(r,token);toast('Bienvenue dans « '+r.nom+' » 🎉');}
+  catch(e){toast(errMsg(e),4000);}
+}
+async function createGroup(){
+  const nom=$('#cNom').value.trim();if(!nom){toast('Donne un nom à ton groupe');return;}
+  const secret=$('#cSecret').value.trim();if(!secret){toast('Il faut le code de création (demande-le à un parent)');return;}
+  if(GROUPS.length>=MAX_GROUPES){toast('Maximum '+MAX_GROUPES+' groupes');return;}
+  const token=newToken();
+  try{const r=await rpc('creer_groupe',{p_nom:nom,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token,p_code_creation:secret});if(r&&r.erreur)throw{code:r.erreur};setGroup(r,token);openInvite();}
+  catch(e){toast(errMsg(e),4000);}
+}
+function setGroup(r,token){
+  G={membre_id:r.membre_id,token,groupe_id:r.groupe_id,code:r.code,nom:r.nom,seen:0};GROUPS.push(G);JOINING=false;saveGroups();
+  resetGroupState();
+  if(location.search)history.replaceState(null,'',location.pathname);
+  TAB='defis';go('defis');poll();
+}
+function inviteLink(){return location.origin+location.pathname+'?code='+G.code;}
+function openInvite(){
+  modal(`<h2>📨 Inviter mes copines</h2>
+  <p class="sub">Envoie-leur ce lien ou donne-leur le code. N'invite que des personnes que tu connais en vrai !</p>
+  <div class="codebox">${esc(G.code)}</div>
+  <button class="btn full" onclick="shareInvite()">Partager le lien</button>
+  <button class="btn ghost full" style="margin-top:10px" onclick="copyInvite()">Copier le lien</button>`);
+}
+async function shareInvite(){
+  const txt=`Rejoins mon groupe « ${G.nom} » sur Révizz pour réviser ensemble ! Code : ${G.code}`;
+  if(navigator.share){try{await navigator.share({title:'Révizz',text:txt,url:inviteLink()});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  copyInvite();
+}
+async function copyInvite(){try{await navigator.clipboard.writeText(inviteLink());toast('Lien copié ✅');}catch(e){toast('Code du groupe : '+G.code,5000);}}
+
+/* ===== synchro ===== */
+let pollT=null,polling=false;
+async function poll(){
+  clearTimeout(pollT);
+  if(!G||document.hidden){pollT=setTimeout(poll,4000);return;}
+  if(!polling){polling=true;
+    try{
+      const g0=G;const s=await call('etat_groupe',{p_depuis:lastMsg});
+      if(s&&G===g0){GS=s;
+        if(s.groupe&&(s.groupe.nom!==G.nom||s.groupe.code!==G.code)){G.nom=s.groupe.nom;G.code=s.groupe.code;saveGroups();$('#gname').textContent='· '+G.nom+(GROUPS.length>1?' ▾':'');}
+        const masq=new Set(s.masques||[]);
+        const nouveaux=(s.messages||[]).filter(m=>m.id>lastMsg);
+        MSGS=MSGS.concat(nouveaux).filter(m=>!masq.has(m.id)).slice(-150);
+        if(nouveaux.length)lastMsg=Math.max(lastMsg,...nouveaux.map(m=>m.id));
+        refreshPts();updateUnread();
+        if(TAB==='chat')appendChat(nouveaux);
+        else if(TAB==='defis'&&!DF&&!JOINING)renderDefis(true);
+      }
+    }catch(e){}
+    polling=false;
+  }
+  pollT=setTimeout(poll,(TAB==='chat'||(TAB==='defis'&&!DF))?3000:8000);
+}
+function pollSoon(){clearTimeout(pollT);pollT=setTimeout(poll,150);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollSoon();});
+function updateUnread(){
+  const n=MSGS.filter(m=>m.id>seenMsg&&m.membre_id!==(G&&G.membre_id)&&!BLOQ.includes(m.membre_id)).length;
+  const u=$('#unread');if(TAB==='chat'||!n){u.style.display='none';if(TAB==='chat')markSeen();}else{u.style.display='';u.textContent=n>9?'9+':n;}
+}
+function markSeen(){if(lastMsg>seenMsg&&G){seenMsg=lastMsg;G.seen=seenMsg;saveGroups();}const u=$('#unread');if(u)u.style.display='none';}
+
+/* ===== DÉFIS (accueil du groupe) ===== */
+let newDefi={matiere:null,nb:10};
+function renderDefis(soft){
+  if(soft&&(document.activeElement&&document.activeElement.tagName==='SELECT'))return;
+  if(!GS){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';return;}
+  const d=GS.defi,admin=GS.groupe.admin_id===G.membre_id;
+  const mb=GS.membres;
+  $('#main').innerHTML=`
+  ${d?`<div class="banner violet" style="margin-top:18px"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueuse${d.joueurs>1?'s':''}<br>
+     <button class="btn" style="margin-top:10px" onclick="joinDefi('${d.id}')">${d.etat==='attente'?'Rejoindre le défi':'Entrer dans le défi'} →</button></div></div>`:
+  `<div class="card" style="margin-top:18px">
+    <h2>⚡ Lancer un défi en direct</h2>
+    <p class="sub" style="margin:0 0 6px">Tout le monde répond en même temps. Plus tu réponds vite et juste, plus tu gagnes de points !</p>
+    <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATIERES.map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
+    <div class="row" style="align-items:center;margin-bottom:12px"><span style="flex:1;font-weight:500">Nombre de questions</span>${[5,10,15].map(n=>`<button class="chip ${newDefi.nb===n?'on':''}" onclick="newDefi.nb=${n};renderDefis()">${n}</button>`).join('')}</div>
+    <button class="btn full" onclick="createDefi()">Créer le défi</button>
+    <p class="meta" style="margin:8px 0 0">📚 ${GS.nb_questions} question${GS.nb_questions>1?'s':''} dans la banque du groupe.</p>
+  </div>`}
+  <div class="card">
+    <h2>🏆 Classement de la semaine</h2>
+    ${mb.map((m,i)=>`<div class="rank"><span class="n">${i<3&&m.semaine>0?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${esc(m.avatar)}${m.en_ligne?'<i></i>':''}</span><span class="p">${esc(m.pseudo)}${m.id===G.membre_id?' <span class="meta">(moi)</span>':''}${m.id===GS.groupe.admin_id?' <span class="meta">👑</span>':''}</span><span class="s">${m.semaine} ⭐</span>${admin&&m.id!==G.membre_id?`<button class="mini" style="color:var(--soft)" onclick="askExclude('${m.id}','${esc(m.pseudo).replace(/'/g,'&#39;')}')">⋯</button>`:''}</div>`).join('')}
+    <p class="meta" style="margin:10px 0 0">Le classement repart à zéro chaque lundi. Gagne des points en faisant des défis, des quiz solo et en ajoutant des questions.</p>
+  </div>
+  <button class="btn ghost full" onclick="openInvite()">📨 Inviter des copines (code ${esc(G.code)})</button>`;
+}
+function askExclude(id,ps){
+  modal(`<h2>${ps}</h2><p class="sub">Tu es l'administratrice du groupe. Si cette personne ne respecte pas les règles, tu peux la retirer du groupe. Ses messages et questions seront masqués.</p>
+  <button class="btn coral full" onclick="doExclude('${id}')">Retirer du groupe</button>
+  <p class="meta" style="margin-top:10px">Astuce : change aussi le code du groupe dans ⚙️ pour qu'elle ne puisse pas revenir.</p>`);
+}
+async function doExclude(id){try{await call('exclure_membre',{p_cible:id});closeModal();toast('Personne retirée du groupe');pollSoon();}catch(e){toast(errMsg(e));}}
+async function createDefi(){
+  try{const r=await call('creer_defi',{p_matiere:newDefi.matiere,p_nb:newDefi.nb});enterDefi(r.id);}
+  catch(e){toast(errMsg(e),4500);if(e.code==='defi_en_cours')pollSoon();}
+}
+async function joinDefi(id){try{await call('rejoindre_defi',{p_defi:id});enterDefi(id);}catch(e){toast(errMsg(e));pollSoon();}}
+
+/* ===== DÉFI EN DIRECT ===== */
+let DF=null; // {id,s,recv,key,timer,adv,lastPts}
+const SHAPES=['▲','◆','●','■'];
+function enterDefi(id){DF={id,s:null,recv:0,key:'',adv:false};TAB='defis';go('defis');defiLoop();}
+async function defiLoop(){
+  if(!DF)return;const me=DF;
+  try{const s=await call('etat_defi',{p_defi:me.id});if(DF!==me)return;me.s=s;me.recv=performance.now();renderDefi();maybeAdvance();}
+  catch(e){if(DF===me&&e.code==='introuvable'){DF=null;render();return;}}
+  if(DF===me){clearTimeout(me.loop);me.loop=setTimeout(defiLoop,me.s&&me.s.etat==='fini'?60000:1000);}
+}
+const elapsed=()=>DF&&DF.s?(DF.s.ecoule_ms+(performance.now()-DF.recv))/1000:0;
+async function maybeAdvance(){
+  const s=DF&&DF.s;if(!s||DF.adv)return;
+  let ok=false;
+  if(s.etat==='question')ok=elapsed()>s.duree+0.4||(s.joueurs.length>0&&s.joueurs.every(j=>j.a_repondu));
+  else if(s.etat==='resultat')ok=elapsed()>6.4;
+  if(!ok)return;
+  DF.adv=true;const me=DF;
+  try{await call('avancer_defi',{p_defi:s.id,p_etat:s.etat,p_idx:s.idx});}catch(e){}
+  me.adv=false;if(DF===me){clearTimeout(me.loop);defiLoop();}
+}
+setInterval(()=>{ // minuteur affiché
+  if(!DF||!DF.s||TAB!=='defis')return;const s=DF.s;
+  if(s.etat==='question'){const left=Math.max(0,s.duree-elapsed());const b=$('#qbar');if(b)b.style.width=(left/s.duree*100)+'%';const t=$('#qleft');if(t)t.textContent=Math.ceil(left);}
+  if(s.etat==='resultat'){const t=$('#nextIn');if(t)t.textContent=Math.max(0,Math.ceil(6-elapsed()));}
+  maybeAdvance();
+},250);
+function renderDefi(force){
+  const s=DF&&DF.s;
+  if(TAB!=='defis')return;
+  if(!s){if(force)$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span> Connexion au défi…</p>';return;}
+  const nRep=s.joueurs.filter(j=>j.a_repondu).length;
+  const key=[s.etat,s.idx,s.ma_reponse?s.ma_reponse.choix:'-',s.etat==='attente'?s.joueurs.map(j=>j.id).join():'',s.etat==='fini'?'f':''].join('|');
+  if(!force&&key===DF.key){const c=$('#nrep');if(c)c.textContent=nRep+'/'+s.joueurs.length;return;}
+  DF.key=key;
+  const chef=s.createur_id===G.membre_id||(GS&&GS.groupe.admin_id===G.membre_id);
+  const q=s.question;
+  let h='';
+  if(s.etat==='attente'){
+    h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · 20 secondes par question</p>
+    <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
+    ${s.createur_id===G.membre_id?`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueuse${s.joueurs.length>1?'s':''})</button><p class="meta center" style="margin-top:8px">Attends que tes copines aient rejoint avant de lancer !</p>`
+      :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que l'organisatrice lance le défi…</p>`}
+    <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${chef?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
+  }else if(s.etat==='question'){
+    const mine=s.ma_reponse;
+    h=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">Question ${s.idx+1}/${s.total}</b><span class="pill">⏱ <span id="qleft">${Math.ceil(Math.max(0,s.duree-elapsed()))}</span></span></div>
+    <div class="qbar"><i id="qbar" style="width:${Math.max(0,s.duree-elapsed())/s.duree*100}%"></i></div>
+    ${tag(q.matiere)}${q.auteur?`<span class="meta">question de ${esc(q.auteur)}</span>`:''}
+    <div class="qtext">${esc(q.texte)}</div>
+    <div class="answers">${q.choix.map((c,k)=>`<button class="ans c${k} ${mine?(mine.choix===k?'pick':'dim'):''}" ${mine?'disabled':''} onclick="answer(${s.idx},${k})"><span class="sh">${SHAPES[k]}</span>${esc(c)}</button>`).join('')}</div>
+    <p class="center sub" style="margin-top:14px">${mine?'Réponse envoyée ✓ ':''}<span id="nrep">${nRep}/${s.joueurs.length}</span> ont répondu</p>`;
+  }else if(s.etat==='resultat'){
+    const mine=s.ma_reponse;
+    const rep=s.repartition||{};
+    h=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">Question ${s.idx+1}/${s.total}</b><span class="meta">suite dans <span id="nextIn">6</span> s</span></div>
+    <div class="big">${!mine?'⏱':mine.correct?'🎉':'😅'}</div>
+    <p class="center" style="margin:0;font-weight:600;font-size:20px">${!mine?'Pas de réponse':mine.correct?'Bravo ! +'+mine.points:'Raté, ce sera pour la prochaine !'}</p>
+    <div class="qtext" style="font-size:18px">${esc(q.texte)}</div>
+    <div class="answers">${q.choix.map((c,k)=>`<div class="ans c${k} ${k===q.bonne?'good':'dim'}"><span class="sh">${SHAPES[k]}</span><span style="flex:1">${esc(c)}</span><span>${rep[k]||0}</span></div>`).join('')}</div>
+    ${q.explication?`<div class="banner sky"><div class="ic">💡</div><div>${esc(q.explication)}</div></div>`:''}
+    <div class="card">${s.joueurs.slice(0,5).map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}${j.id===G.membre_id?' (moi)':''}</span><span class="s">${j.score}</span></div>`).join('')}</div>
+    ${chef?`<button class="btn light full" onclick="skipNext()">Question suivante →</button>`:''}`;
+  }else{
+    const top=s.joueurs.slice(0,3),me=s.joueurs.findIndex(j=>j.id===G.membre_id);
+    const order=[1,0,2].filter(i=>top[i]);const H=[110,150,80],C=['#C0C0C0','#F4B740','#D08A5A'];
+    h=`<h1 class="center">🏆 Résultats</h1>
+    <div class="podium">${order.map(i=>`<div><div style="font-size:34px">${esc(top[i].avatar)}</div><div style="font-weight:600;font-size:14px">${esc(top[i].pseudo)}</div><div class="meta">${top[i].score}</div><div class="blk" style="height:${H[[1,0,2].indexOf(i)]}px;background:${C[[1,0,2].indexOf(i)]}">${i+1}</div></div>`).join('')}</div>
+    ${me>=0?`<p class="center" style="font-weight:600">Tu termines ${me===0?'1re 🥇':(me+1)+'e'} avec ${s.joueurs[me].score} points !</p>`:''}
+    <div class="card">${s.joueurs.map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span><span class="s">${j.score}</span></div>`).join('')}</div>
+    <p class="meta center">Les points du défi sont ajoutés au classement de la semaine.</p>
+    <button class="btn full" onclick="quitDefi()">Retour au groupe</button>`;
+    if(!DF.fete&&me===0&&s.joueurs[0].score>0){DF.fete=true;confetti();}
+  }
+  $('#main').innerHTML=h;
+}
+async function startDefi(){const s=DF.s;try{await call('avancer_defi',{p_defi:s.id,p_etat:'attente',p_idx:0});clearTimeout(DF.loop);defiLoop();}catch(e){toast(errMsg(e));}}
+async function skipNext(){const s=DF.s;try{await call('avancer_defi',{p_defi:s.id,p_etat:s.etat,p_idx:s.idx});clearTimeout(DF.loop);defiLoop();}catch(e){}}
+async function answer(idx,k){
+  if(!DF||!DF.s)return;const s=DF.s;
+  s.ma_reponse={choix:k};DF.key='';renderDefi();
+  try{await call('repondre',{p_defi:s.id,p_idx:idx,p_choix:k});}catch(e){toast(errMsg(e));}
+  clearTimeout(DF.loop);defiLoop();
+}
+function quitDefi(){if(DF)clearTimeout(DF.loop);DF=null;pollSoon();render();}
+async function cancelDefi(){if(!DF)return;try{await call('annuler_defi',{p_defi:DF.id});}catch(e){}quitDefi();}
+
+/* ===== DISCUSSION ===== */
+const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏'];
+function msgHtml(m){
+  if(BLOQ.includes(m.membre_id))return '';
+  const me=m.membre_id===G.membre_id;
+  return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w">${esc(m.avatar)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span><button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button></div>`;
+}
+function renderChat(){
+  $('#main').innerHTML=`
+  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentille 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte.</div></div>
+  <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋</p>'}</div><div id="chatEnd"></div>
+  <div class="composer">
+    <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
+    <div class="in"><textarea id="txt" rows="1" maxlength="300" placeholder="Écris un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea><button class="send" onclick="sendMsg()" aria-label="Envoyer">➤</button></div>
+  </div>`;
+  markSeen();
+}
+function appendChat(nouveaux){
+  const c=$('#chat');if(!c)return;
+  const atBottom=(window.innerHeight+window.scrollY)>=document.body.scrollHeight-160;
+  const ids=new Set(MSGS.map(m=>m.id));
+  c.querySelectorAll('.msg').forEach(e=>{if(!ids.has(+e.dataset.id))e.remove();});
+  const empty=c.querySelector('.empty');if(empty&&MSGS.length)empty.remove();
+  const have=new Set([...c.querySelectorAll('.msg')].map(e=>+e.dataset.id));
+  nouveaux.filter(m=>!have.has(m.id)).forEach(m=>c.insertAdjacentHTML('beforeend',msgHtml(m)));
+  markSeen();
+  if(atBottom||nouveaux.some(m=>m.membre_id===G.membre_id))$('#chatEnd').scrollIntoView({behavior:'smooth'});
+}
+let sending=false;
+async function sendMsg(txt){
+  if(sending)return;const ta=$('#txt');const v=(txt||(ta&&ta.value)||'').trim();if(!v)return;
+  sending=true;
+  try{await call('envoyer_message',{p_texte:v});if(!txt&&ta)ta.value='';pollSoon();}
+  catch(e){toast(errMsg(e),4000);}
+  sending=false;
+}
+function msgMenu(id){
+  const m=MSGS.find(x=>x.id===id);if(!m)return;
+  const me=m.membre_id===G.membre_id,admin=GS&&GS.groupe.admin_id===G.membre_id;
+  modal(`<h2>Message de ${esc(m.pseudo)}</h2><div class="card" style="font-size:15px">${esc(m.texte)}</div>
+  ${me?`<button class="btn light full" onclick="reportMsg(${id})">🗑️ Supprimer mon message</button>`:
+  `<button class="btn coral full" onclick="reportMsg(${id})">⚑ ${admin?'Supprimer ce message':'Signaler ce message'}</button>
+   <button class="btn light full" style="margin-top:10px" onclick="blockUser('${m.membre_id}')">🙈 Ne plus voir les messages de ${esc(m.pseudo)}</button>
+   ${admin?'':'<p class="meta" style="margin-top:10px">Un message signalé par 2 personnes est masqué pour tout le groupe. Si quelqu\'un te harcèle, parles-en à un adulte. Tu peux aussi appeler le 3020 (gratuit).</p>'}`}`);
+}
+async function reportMsg(id){
+  try{const r=await call('signaler_message',{p_message:id});closeModal();
+    if(r.masque){MSGS=MSGS.filter(m=>m.id!==id);const e=document.querySelector(`.msg[data-id="${id}"]`);e&&e.remove();toast('Message retiré');}
+    else toast('Merci, le message a été signalé 💜');}
+  catch(e){toast(errMsg(e));}
+}
+function blockUser(mid){BLOQ.push(mid);LS.set('bloques',BLOQ);closeModal();renderChat();toast('Tu ne verras plus ses messages (modifiable dans ⚙️)');}
+
+/* ===== RÉVISER ===== */
+let RV={view:'home',filtre:null,list:null,quiz:null,form:{matiere:null,choix:['','','',''],bonne:0}};
+async function loadQuestions(){try{RV.list=await call('lister_questions',{p_matiere:null});}catch(e){RV.list=RV.list||[];}}
+async function renderReviser(){
+  if(RV.view==='quiz')return renderQuiz();
+  if(RV.view==='ajout')return renderAjout();
+  if(RV.view==='banque')return renderBanque();
+  if(!RV.list){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';await loadQuestions();if(TAB!=='reviser'||RV.view!=='home')return;}
+  const L=RV.list,count=id=>L.filter(q=>q.matiere===id).length;
+  const mine=L.filter(q=>q.moi).length;
+  $('#main').innerHTML=`
+  <h1>Réviser 📚</h1>
+  <p class="sub">La banque du groupe contient <b>${L.length}</b> question${L.length>1?'s':''} écrite${L.length>1?'s':''} par vous toutes (dont ${mine} par toi).</p>
+  <div class="card" style="background:var(--violet-l);border:none">
+    <h2>✍️ Ajouter une question</h2>
+    <p style="margin:0 0 12px;font-size:15px">Écrire une question, c'est déjà réviser ! Prends ta leçon et transforme-la en QCM pour tes copines (+3 ⭐).</p>
+    <button class="btn full" onclick="RV.view='ajout';renderReviser()">Écrire une question</button>
+  </div>
+  <div class="card">
+    <h2>🎯 Quiz solo</h2>
+    <p class="sub" style="margin:0 0 6px">10 questions au hasard, à ton rythme.</p>
+    <div class="chips"><button class="chip ${!RV.filtre?'on':''}" onclick="RV.filtre=null;renderReviser()">Toutes (${L.length})</button>${MATIERES.filter(m=>count(m.id)).map(m=>`<button class="chip ${RV.filtre===m.id?'on':''}" onclick="RV.filtre='${m.id}';renderReviser()">${m.e} ${m.n} (${count(m.id)})</button>`).join('')}</div>
+    <button class="btn mint full" onclick="startQuiz()" ${L.length?'':'disabled'}>Commencer</button>
+  </div>
+  <button class="btn ghost full" onclick="RV.view='banque';renderReviser()">📋 Voir toutes les questions</button>`;
+}
+function startQuiz(){
+  const pool=RV.list.filter(q=>!RV.filtre||q.matiere===RV.filtre).sort(()=>Math.random()-.5).slice(0,10);
+  if(!pool.length){toast('Pas encore de questions ici');return;}
+  RV.quiz={qs:pool,i:0,rep:null,ok:0};RV.view='quiz';renderReviser();
+}
+function renderQuiz(){
+  const Q=RV.quiz;
+  if(Q.i>=Q.qs.length){
+    const pts=Math.min(10,Q.ok);
+    call('points_solo',{p_points:pts}).then(pollSoon).catch(()=>{});
+    if(Q.ok===Q.qs.length)confetti();
+    $('#main').innerHTML=`<h1 class="center">Quiz terminé !</h1><div class="big">${Q.ok===Q.qs.length?'💯':Q.ok>=Q.qs.length/2?'👏':'💪'}</div>
+    <p class="center" style="font-size:22px;font-weight:700;margin:0">${Q.ok} / ${Q.qs.length}</p><p class="center sub">+${pts} ⭐ pour le classement (60 max par jour)</p>
+    <div class="row"><button class="btn" onclick="startQuiz()">Rejouer</button><button class="btn ghost" onclick="RV.view='home';renderReviser()">Retour</button></div>`;
+    return;
+  }
+  const q=Q.qs[Q.i];
+  $('#main').innerHTML=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">${Q.i+1} / ${Q.qs.length}</b><button class="mini" onclick="RV.view='home';renderReviser()">✕ Arrêter</button></div>
+  <div class="qbar"><i style="width:${Q.i/Q.qs.length*100}%"></i></div>
+  ${tag(q.matiere)}<span class="meta">question de ${esc(q.auteur||'?')}</span>
+  <div class="qtext" style="text-align:left;font-size:20px">${esc(q.question)}</div>
+  ${q.choix.map((c,k)=>{let cl='';if(Q.rep!=null){if(k===q.bonne)cl='ok';else if(k===Q.rep)cl='ko';}return `<button class="qopt ${cl}" ${Q.rep!=null?'disabled':''} onclick="quizRep(${k})">${esc(c)}</button>`;}).join('')}
+  ${Q.rep!=null?`<div class="expl">${Q.rep===q.bonne?'✅ Bravo !':'❌ Pas tout à fait.'} ${esc(q.explication||'')}</div>
+  <div class="row"><button class="btn" onclick="RV.quiz.i++;RV.quiz.rep=null;renderQuiz()">Suivante →</button></div>
+  <button class="mini" style="color:var(--soft);margin-top:8px" onclick="reportQ('${q.id}')">⚑ Signaler une erreur ou une question méchante</button>`:''}`;
+}
+function quizRep(k){const Q=RV.quiz;Q.rep=k;if(k===Q.qs[Q.i].bonne)Q.ok++;renderQuiz();}
+async function reportQ(id){try{const r=await call('signaler_question',{p_question:id});toast(r.masque?'Question retirée':'Merci, c\'est signalé 💜');RV.list=null;}catch(e){toast(errMsg(e));}}
+function renderAjout(){
+  const f=RV.form;
+  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="keepForm();RV.view='home';renderReviser()">← Retour</button>
+  <h1>✍️ Nouvelle question</h1>
+  <div class="card">
+    <label class="l">Matière</label>
+    <div class="chips">${MATIERES.map(m=>`<button class="chip ${f.matiere===m.id?'on':''}" onclick="keepForm();RV.form.matiere='${m.id}';renderAjout()">${m.e} ${m.n}</button>`).join('')}</div>
+    <label class="l">La question</label>
+    <textarea id="fQ" maxlength="220" style="min-height:80px" placeholder="Ex. : Quel est le participe passé du verbe « prendre » ?">${esc(f.q||'')}</textarea>
+    <label class="l">Les réponses <span class="meta">(coche la bonne · 2 réponses minimum)</span></label>
+    ${f.choix.map((c,k)=>`<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><input type="radio" name="bonne" ${f.bonne===k?'checked':''} onchange="RV.form.bonne=${k}" style="width:24px;height:24px;flex:none"><input type="text" id="fC${k}" maxlength="80" placeholder="Réponse ${'ABCD'[k]}${k<2?'':' (facultatif)'}" value="${esc(c)}"></div>`).join('')}
+    <label class="l">Explication <span class="meta">(facultatif, mais ça aide !)</span></label>
+    <input type="text" id="fE" maxlength="220" placeholder="Pourquoi c'est la bonne réponse ?" value="${esc(f.e||'')}">
+  </div>
+  <button class="btn full" onclick="submitQ()">Ajouter à la banque du groupe</button>`;
+}
+function keepForm(){const f=RV.form;const q=$('#fQ');if(!q)return;f.q=q.value;f.e=$('#fE').value;f.choix=[0,1,2,3].map(k=>$('#fC'+k).value);}
+async function submitQ(){
+  keepForm();const f=RV.form;
+  if(!f.matiere){toast('Choisis la matière');return;}
+  if((f.q||'').trim().length<3){toast('Écris la question');return;}
+  const idx=[0,1,2,3].filter(k=>f.choix[k].trim());
+  if(idx.length<2){toast('Il faut au moins 2 réponses');return;}
+  if(!f.choix[f.bonne].trim()){toast('La bonne réponse cochée est vide');return;}
+  const choix=idx.map(k=>f.choix[k].trim()),bonne=idx.indexOf(f.bonne);
+  try{await call('ajouter_question',{p_matiere:f.matiere,p_question:f.q.trim(),p_choix:choix,p_bonne:bonne,p_explication:(f.e||'').trim()||null});
+    toast('Question ajoutée ! +3 ⭐');RV.form={matiere:f.matiere,choix:['','','',''],bonne:0};RV.list=null;pollSoon();renderAjout();}
+  catch(e){toast(errMsg(e),4000);}
+}
+function renderBanque(){
+  const L=RV.list||[];
+  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="RV.view='home';renderReviser()">← Retour</button>
+  <h1>📋 Banque du groupe</h1>
+  <div class="card">${L.length?L.map(q=>`<div class="qitem"><div>${tag(q.matiere)}<span class="meta">${esc(q.avatar||'')} ${esc(q.auteur||'?')}</span></div><div style="font-weight:500;margin:4px 0">${esc(q.question)}</div><div class="meta">✓ ${esc(q.choix[q.bonne])}</div>
+   <button class="mini" style="color:var(--soft)" onclick="reportQ('${q.id}').then(()=>{RV.list=null;RV.view='home';renderReviser()})">${q.moi?'🗑️ Supprimer':'⚑ Signaler'}</button></div>`).join(''):'<p class="empty">Aucune question pour le moment.</p>'}</div>`;
+}
+
+/* ===== AGENDA (sur l'appareil) ===== */
+let agM=null;
+function renderAgenda(){
+  const t=dayStr(),items=[...AG.items].sort((a,b)=>(a.fait-b.fait)||a.pour.localeCompare(b.pour));
+  const todo=items.filter(i=>!i.fait),done=items.filter(i=>i.fait);
+  $('#main').innerHTML=`<h1>Mon agenda 📅</h1>
+  ${timerCard()}
+  <div class="card"><h2>➕ Ajouter un devoir</h2>
+    <div class="chips">${MATIERES.map(m=>`<button class="chip ${agM===m.id?'on':''}" onclick="agKeep();agM='${m.id}';renderAgenda()">${m.e} ${m.n}</button>`).join('')}</div>
+    <input type="text" id="agT" maxlength="160" placeholder="Ex. : exercices 3 et 4 page 52">
+    <label class="l">Pour le</label><input type="date" id="agD" value="${addDays(t,1)}" min="${t}">
+    <button class="btn full" style="margin-top:12px" onclick="addDevoir()">Ajouter</button></div>
+  <div class="card"><h2>À faire</h2>${todo.length?todo.map(taskHtml).join(''):'<p class="empty">Rien à faire 🎉</p>'}</div>
+  ${done.length?`<div class="card"><h2>Fait ✅</h2>${done.slice(-15).map(taskHtml).join('')}</div>`:''}
+  <p class="meta">📌 Ton agenda reste sur ton téléphone, personne d'autre ne le voit.</p>`;
+  if(window._agT)$('#agT').value=window._agT;
+}
+function agKeep(){const a=$('#agT');if(a)window._agT=a.value;}
+function taskHtml(i){const late=!i.fait&&i.pour<dayStr();return `<div class="task ${i.fait?'done':''}"><button class="cb ${i.fait?'on':''}" onclick="toggleDevoir('${i.id}')">${i.fait?'✓':''}</button><div class="x"><div class="txt">${esc(i.texte)}</div><div class="meta">${tag(i.matiere)}<span style="${late?'color:var(--coral);font-weight:600':''}">pour ${frDate(i.pour)}</span> · <button class="mini" style="color:var(--soft)" onclick="delDevoir('${i.id}')">supprimer</button></div></div></div>`;}
+function addDevoir(){const t=$('#agT').value.trim(),d=$('#agD').value;if(!agM){toast('Choisis la matière');return;}if(!t){toast('Écris le devoir');return;}AG.items.push({id:uid(),matiere:agM,texte:t,pour:d||addDays(dayStr(),1),fait:false});AG.items=AG.items.slice(-200);LS.set('agenda',AG);agM=null;window._agT='';renderAgenda();toast('Devoir ajouté 👍');}
+function toggleDevoir(id){const i=AG.items.find(x=>x.id===id);if(i){i.fait=!i.fait;LS.set('agenda',AG);renderAgenda();}}
+function delDevoir(id){AG.items=AG.items.filter(x=>x.id!==id);LS.set('agenda',AG);renderAgenda();}
+let TM={ph:'w',left:1200,run:false};
+const fmt=s=>z(Math.floor(s/60))+':'+z(s%60);
+function timerCard(){return `<div class="card center" style="background:${TM.ph==='w'?'var(--violet-l)':'var(--mint-l)'};border:none"><h2 style="margin:0">${TM.ph==='w'?'🎯 Concentration':'☕ Pause'}</h2><div class="tbig" id="tb">${fmt(TM.left)}</div><p class="meta" style="margin:0 0 12px">${TM.ph==='w'?'20 minutes de travail, sans distraction.':'5 minutes pour souffler.'}</p><div class="row"><button class="btn ${TM.run?'light':''}" onclick="tmToggle()">${TM.run?'⏸ Pause':'▶ Démarrer'}</button><button class="btn light" onclick="tmReset()">↺</button></div></div>`;}
+function beep(){try{const a=window._ac||(window._ac=new (window.AudioContext||window.webkitAudioContext)());[0,.25,.5].forEach(d=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.2,a.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d+.2);o.start(a.currentTime+d);o.stop(a.currentTime+d+.22);});}catch(e){}}
+function tmToggle(){try{window._ac=window._ac||new (window.AudioContext||window.webkitAudioContext)();}catch(e){}if(TM.run){clearInterval(TM.iv);TM.run=false;}else{TM.run=true;TM.end=Date.now()+TM.left*1000;TM.iv=setInterval(tmTick,500);}if(TAB==='agenda')renderAgenda();}
+function tmTick(){TM.left=Math.max(0,Math.round((TM.end-Date.now())/1000));if(!TM.left){beep();if(TM.ph==='w'){TM.ph='p';TM.left=300;toast('Bravo ! Place à la pause ☕',4000);}else{TM.ph='w';TM.left=1200;toast("C'est reparti 💪");}TM.end=Date.now()+TM.left*1000;if(TAB==='agenda')renderAgenda();}const b=$('#tb');if(b)b.textContent=fmt(TM.left);}
+function tmReset(){clearInterval(TM.iv);TM={ph:'w',left:1200,run:false};if(TAB==='agenda')renderAgenda();}
+
+/* ===== réglages ===== */
+function modal(html){closeModal();const o=document.createElement('div');o.className='ov';o.id='ov';o.innerHTML=`<div class="sheet"><button class="xb" onclick="closeModal()" aria-label="Fermer">✕</button>${html}</div>`;o.addEventListener('click',e=>{if(e.target===o)closeModal();});document.body.appendChild(o);}
+function closeModal(){const o=$('#ov');o&&o.remove();}
+function openSettings(){
+  if(!P||!P.ok){modal(`<h2>Révizz</h2><p class="sub">Crée ton profil pour commencer.</p>`);return;}
+  const admin=G&&GS&&GS.groupe.admin_id===G.membre_id;
+  const bl=BLOQ.length;
+  modal(`<h2>⚙️ Réglages</h2>
+  <div class="card"><b>${esc(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administratrice':''}</div>`:''}</div>
+  ${installHtml()}
+  ${GROUPS.length>1||G?`<button class="btn light full" style="margin-bottom:6px" onclick="openGroups()">👭 Mes groupes (${GROUPS.length}) · changer / ajouter</button>`:''}
+  ${G?`<div class="card"><h2>👭 Groupe « ${esc(G.nom)} »</h2><div class="codebox">${esc(G.code)}</div>
+    <button class="btn ghost full" onclick="openInvite()">📨 Inviter des copines</button>
+    ${admin?`<button class="btn light full" style="margin-top:10px" onclick="newCode()">🔄 Changer le code du groupe</button><p class="meta" style="margin:6px 0 0">L'ancien code ne marchera plus. Les membres actuelles restent dans le groupe.</p>`:''}
+    ${bl?`<button class="btn light full" style="margin-top:10px" onclick="BLOQ=[];LS.set('bloques',[]);toast('Messages de nouveau visibles');closeModal()">Revoir les messages masqués (${bl} personne${bl>1?'s':''})</button>`:''}
+    <button class="btn coral full" style="margin-top:10px" onclick="askLeave()">Quitter le groupe</button></div>`:''}
+  <div class="card"><h2>👨‍👩‍👧 Pour les parents</h2><p style="margin:0;font-size:14px">Révizz ne demande ni e-mail ni nom de famille. Les messages passent par un filtre (insultes, numéros, adresses, réseaux sociaux, liens), peuvent être signalés et sont effacés après 30 jours. L'administratrice d'un groupe peut retirer un membre. Quitter le groupe efface le pseudo, les messages et les points de l'enfant.<br><br>En cas de harcèlement : <b>3020</b> (gratuit). Enfance en danger : <b>119</b> (gratuit, 24h/24).</p></div>
+  <button class="btn light full" onclick="resetProfil()">Changer de pseudo / d'avatar</button>`);
+}
+async function newCode(){try{const r=await call('changer_code');G.code=r.code;saveGroups();openSettings();toast('Nouveau code : '+r.code,4000);}catch(e){toast(errMsg(e));}}
+function askLeave(){modal(`<h2>Quitter le groupe ?</h2><p class="sub">Ton pseudo, tes messages et tes points seront effacés. Tes questions restent dans la banque, sans ton nom. Tu pourras rejoindre un groupe plus tard.</p><div class="row"><button class="btn light" onclick="openSettings()">Annuler</button><button class="btn coral" onclick="doLeave()">Quitter</button></div>`);}
+async function doLeave(){try{await call('quitter_groupe');}catch(e){}closeModal();leaveLocal();toast('Tu as quitté le groupe');}
+function resetProfil(){if(GROUPS.length){toast("Quitte d'abord tes groupes pour changer de pseudo");return;}P=null;LS.set('profil',null);closeModal();render();}
+
+/* ===== installation sur l'écran d'accueil ===== */
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;});
+const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+function installHtml(){
+  if(standalone())return '';
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  return `<div class="card"><h2>📲 Installer l'appli</h2>${installEvt?`<button class="btn full" onclick="doInstall()">Ajouter à l'écran d'accueil</button>`:
+   ios?`<p style="margin:0;font-size:15px">Dans Safari, touche <b>Partager</b> ⬆️ puis <b>« Sur l'écran d'accueil »</b>.</p>`:
+   `<p style="margin:0;font-size:15px">Dans Chrome, touche le menu <b>⋮</b> puis <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</p>`}</div>`;
+}
+async function doInstall(){if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice;}catch(e){}installEvt=null;closeModal();}
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* ===== démarrage ===== */
+const invCode=new URLSearchParams(location.search).get('code');
+if(invCode&&GROUPS.length){const g=GROUPS.find(x=>x.code===invCode.toUpperCase());if(g){G=g;saveGroups();history.replaceState(null,'',location.pathname);}else JOINING=true;}
+go(TAB);if(G)poll();
+</script>
+</body>
+</html>

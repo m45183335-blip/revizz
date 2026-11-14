@@ -1,0 +1,17 @@
+{
+  "name": "Révizz",
+  "short_name": "Révizz",
+  "description": "Révise avec tes copines : quiz, défis en direct et classement de la semaine.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6EF",
+  "theme_color": "#6D4AFF",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

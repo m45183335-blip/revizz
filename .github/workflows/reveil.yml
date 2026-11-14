@@ -1,0 +1,13 @@
+# Garde la base de données Supabase éveillée (elle se met en pause après 7 jours sans activité)
+name: Réveil quotidien
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+jobs:
+  reveil:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsS -X POST "https://fbhhdyamgltswycweuea.supabase.co/rest/v1/rpc/reveil" \
+            -H "apikey: sb_publishable_xe-1hVpfX1IAT0RtALPY2g_tzGI-LGn" -H "Content-Type: application/json" -d '{}'
