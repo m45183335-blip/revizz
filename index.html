@@ -152,8 +152,29 @@ function toast(t,ms=2800){document.querySelectorAll('.toast').forEach(e=>e.remov
 const LS={get(k,d){try{const v=localStorage.getItem('hd_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('hd_'+k,JSON.stringify(v));}catch(e){}}};
 function confetti(){const e=['🎉','⭐','✨','🎊','💜','🏆'];for(let i=0;i<28;i++){const c=document.createElement('div');c.className='confetti';c.textContent=e[i%e.length];c.style.left=Math.random()*100+'vw';c.style.animationDuration=(2+Math.random()*2)+'s';c.style.animationDelay=(Math.random()*.6)+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),5000);}}
 
-const MATIERES=[{id:'maths',n:'Maths',e:'🔢',c:'#7B6CF6'},{id:'francais',n:'Français',e:'📖',c:'#F2785C'},{id:'anglais',n:'Anglais',e:'🇬🇧',c:'#4BA3E3'},{id:'histgeo',n:'Histoire-Géo',e:'🌍',c:'#C98A2B'},{id:'svt',n:'SVT',e:'🌱',c:'#2FB38A'},{id:'physique',n:'Physique-Chimie',e:'⚗️',c:'#9A5BD6'},{id:'langue2',n:'LV2',e:'💬',c:'#E0567A'},{id:'techno',n:'Techno',e:'⚙️',c:'#5B7A8C'},{id:'autre',n:'Culture G',e:'✨',c:'#6E6880'}];
-const M=id=>MATIERES.find(m=>m.id===id)||MATIERES[MATIERES.length-1];
+const MATIERES=[
+ {id:'francais',n:'Français',e:'📖',c:'#F2785C'},{id:'maths',n:'Maths',e:'🔢',c:'#7B6CF6'},{id:'anglais',n:'Anglais',e:'🇬🇧',c:'#4BA3E3'},
+ {id:'qlm',n:'Questionner le monde',e:'🔍',c:'#2FB38A'},{id:'sciences',n:'Sciences',e:'🔬',c:'#2FB38A'},
+ {id:'histgeo',n:'Histoire-Géo',e:'🌍',c:'#C98A2B'},{id:'svt',n:'SVT',e:'🌱',c:'#2FB38A'},{id:'physique',n:'Physique-Chimie',e:'⚗️',c:'#9A5BD6'},
+ {id:'techno',n:'Techno',e:'⚙️',c:'#5B7A8C'},{id:'langue2',n:'LV2',e:'💬',c:'#E0567A'},{id:'ses',n:'SES',e:'📈',c:'#D9822B'},
+ {id:'snt',n:'SNT',e:'💻',c:'#3D7FD9'},{id:'ensci',n:'Ens. scientifique',e:'🧪',c:'#2FA7A0'},{id:'specialite',n:'Spécialité',e:'🎯',c:'#B0478F'},
+ {id:'philo',n:'Philo',e:'🤔',c:'#6B5B95'},{id:'emc',n:'EMC',e:'🤝',c:'#8C6B5B'},{id:'autre',n:'Culture G',e:'✨',c:'#6E6880'}];
+const NIVEAUX=[{cycle:'Primaire',l:['CP','CE1','CE2','CM1','CM2']},{cycle:'Collège',l:['6e','5e','4e','3e']},{cycle:'Lycée',l:['2nde','1re','Tle']}];
+const NIV_LABEL={CP:'CP',CE1:'CE1',CE2:'CE2',CM1:'CM1',CM2:'CM2','6e':'6e','5e':'5e','4e':'4e','3e':'3e','2nde':'Seconde','1re':'Première',Tle:'Terminale'};
+const MATS_PAR_NIVEAU={
+  CP:['francais','maths','qlm','anglais','emc','autre'],CE1:['francais','maths','qlm','anglais','emc','autre'],CE2:['francais','maths','qlm','anglais','emc','autre'],
+  CM1:['francais','maths','sciences','histgeo','anglais','emc','autre'],CM2:['francais','maths','sciences','histgeo','anglais','emc','autre'],
+  '6e':['francais','maths','anglais','histgeo','svt','physique','techno','emc','autre'],
+  '5e':['francais','maths','anglais','langue2','histgeo','svt','physique','techno','emc','autre'],
+  '4e':['francais','maths','anglais','langue2','histgeo','svt','physique','techno','emc','autre'],
+  '3e':['francais','maths','anglais','langue2','histgeo','svt','physique','techno','emc','autre'],
+  '2nde':['francais','maths','anglais','langue2','histgeo','svt','physique','ses','snt','emc','autre'],
+  '1re':['francais','maths','anglais','langue2','histgeo','ensci','specialite','svt','physique','ses','emc','autre'],
+  Tle:['philo','maths','anglais','langue2','histgeo','ensci','specialite','svt','physique','ses','emc','autre']};
+const estPrimaire=n=>['CP','CE1','CE2','CM1','CM2'].includes(n);
+function NIV(){return (GS&&GS.groupe&&GS.groupe.niveau)||(G&&G.niveau)||'5e';}
+function MATS(){return (MATS_PAR_NIVEAU[NIV()]||MATS_PAR_NIVEAU['5e']).map(M);}
+function M(id){return MATIERES.find(m=>m.id===id)||MATIERES[MATIERES.length-1];}
 const tag=id=>{const m=M(id);return `<span class="tag" style="background:${m.c}22;color:${m.c}">${m.e} ${esc(m.n)}</span>`;};
 const AVATARS=['😎','🔥','⚡','💎','👑','🎧','🎮','🛹','🏀','⚽','🎤','📸','🎨','🌙','🌈','🦋','🐺','🍕'];
 
@@ -168,7 +189,7 @@ const ERR={
   pas_assez_questions:"Il faut au moins 3 questions dans la banque (pour cette matière) pour lancer un défi. Ajoutez-en dans « Réviser » !",
   defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
-  introuvable:"Introuvable (déjà supprimé ?).",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",reseau:"Pas de connexion internet 📶 Réessaie."};
+  introuvable:"Introuvable (déjà supprimé ?).",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
@@ -186,7 +207,8 @@ let P=LS.get('profil',null);         // {pseudo, avatar}
 let GROUPS=LS.get('groupes',null);  // [{membre_id, token, groupe_id, code, nom, seen}]
 if(!GROUPS){const old=LS.get('groupe',null);GROUPS=old?[old]:[];}
 let G=GROUPS.find(g=>g.membre_id===LS.get('courant',null))||GROUPS[0]||null;
-let JOINING=false;                   // écran « rejoindre / créer » ouvert alors qu'on a déjà un groupe
+let JOINING=false;
+let CN=null;                         // niveau choisi à la création                   // écran « rejoindre / créer » ouvert alors qu'on a déjà un groupe
 const MAX_GROUPES=6;
 function saveGroups(){LS.set('groupes',GROUPS);LS.set('courant',G?G.membre_id:null);}
 let AG=LS.get('agenda',{items:[]});
@@ -209,7 +231,7 @@ function go(t){TAB=t;document.querySelectorAll('.nv button').forEach(b=>b.classL
 function render(){
   const inv=new URLSearchParams(location.search).get('code');
   $('#nav').style.display=(P&&P.ok)?'':'none';
-  $('#gname').textContent=G?'· '+G.nom+(GROUPS.length>1?' ▾':''):'';
+  $('#gname').textContent=G?'· '+G.nom+(G.niveau?' ('+(NIV_LABEL[G.niveau]||G.niveau)+')':'')+(GROUPS.length>1?' ▾':''):'';
   refreshPts();
   if(!P||!P.ok)return renderWelcome();
   if(TAB==='agenda')return renderAgenda();
@@ -236,7 +258,7 @@ function renderWelcome(){
   <div class="card">
     <h2>📜 Les règles du groupe</h2>
     <ul style="margin:0 0 10px;padding-left:20px;font-size:15px">
-      <li>Je suis gentille avec tout le monde, même quand je gagne ou je perds.</li>
+      <li>Je suis gentil(le) avec tout le monde, même quand je gagne ou je perds.</li>
       <li>Je ne partage jamais mon adresse, mon numéro, mes réseaux sociaux ni de photos.</li>
       <li>Si un message me met mal à l'aise, je le signale ⚑ et j'en parle à un adulte.</li>
       <li>Je n'invite que des personnes que je connais en vrai.</li>
@@ -263,12 +285,14 @@ function renderJoin(inv){
   ${GROUPS.length>=MAX_GROUPES?`<div class="banner sun"><div class="ic">✋</div><div>Tu es déjà dans ${MAX_GROUPES} groupes, c'est le maximum. Quitte-en un dans ⚙️ pour en rejoindre un autre.</div></div>`:''}
   <div class="card">
     <h2>🔑 Rejoindre un groupe</h2>
-    <input type="text" id="jCode" maxlength="6" placeholder="Code à 6 caractères" value="${esc(inv||'')}" style="text-transform:uppercase;letter-spacing:4px;font-weight:700;font-size:20px;text-align:center">
+    <input type="text" id="jCode" maxlength="6" placeholder="Code du groupe" value="${esc(inv||'')}" style="text-transform:uppercase;letter-spacing:4px;font-weight:700;font-size:20px;text-align:center">
     <button class="btn full" style="margin-top:12px" onclick="joinGroup()">Rejoindre</button>
   </div>
   <div class="card">
     <h2>✨ Créer un groupe</h2>
     <input type="text" id="cNom" maxlength="40" placeholder="Nom du groupe, ex. : Les 5e B">
+    <label class="l">Niveau du groupe <span class="meta">(définitif)</span></label>
+    ${NIVEAUX.map(c=>`<div class="meta" style="margin-top:6px">${c.cycle}</div><div class="chips" style="margin:4px 0 6px">${c.l.map(n=>`<button class="chip nivchip ${CN===n?'on':''}" onclick="CN='${n}';document.querySelectorAll('.nivchip').forEach(b=>b.classList.toggle('on',b.dataset.n===CN))" data-n="${n}">${NIV_LABEL[n]}</button>`).join('')}</div>`).join('')}
     <label class="l">Code de création</label>
     <input type="text" id="cSecret" maxlength="30" placeholder="Demande-le à un parent 🔐" autocomplete="off" style="text-transform:uppercase">
     <p class="meta" style="margin:6px 0 0">Pour créer un groupe, il faut le code secret donné par un parent.</p>
@@ -285,14 +309,15 @@ async function joinGroup(){
 }
 async function createGroup(){
   const nom=$('#cNom').value.trim();if(!nom){toast('Donne un nom à ton groupe');return;}
+  if(!CN){toast('Choisis le niveau du groupe');return;}
   const secret=$('#cSecret').value.trim();if(!secret){toast('Il faut le code de création (demande-le à un parent)');return;}
   if(GROUPS.length>=MAX_GROUPES){toast('Maximum '+MAX_GROUPES+' groupes');return;}
   const token=newToken();
-  try{const r=await rpc('creer_groupe',{p_nom:nom,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token,p_code_creation:secret});if(r&&r.erreur)throw{code:r.erreur};setGroup(r,token);openInvite();}
+  try{const r=await rpc('creer_groupe',{p_nom:nom,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token,p_code_creation:secret,p_niveau:CN});if(r&&r.erreur)throw{code:r.erreur};setGroup(r,token);openInvite();}
   catch(e){toast(errMsg(e),4000);}
 }
 function setGroup(r,token){
-  G={membre_id:r.membre_id,token,groupe_id:r.groupe_id,code:r.code,nom:r.nom,seen:0};GROUPS.push(G);JOINING=false;saveGroups();
+  G={membre_id:r.membre_id,token,groupe_id:r.groupe_id,code:r.code,nom:r.nom,niveau:r.niveau||null,seen:0};CN=null;GROUPS.push(G);JOINING=false;saveGroups();
   resetGroupState();
   if(location.search)history.replaceState(null,'',location.pathname);
   TAB='defis';go('defis');poll();
@@ -321,7 +346,7 @@ async function poll(){
     try{
       const g0=G;const s=await call('etat_groupe',{p_depuis:lastMsg});
       if(s&&G===g0){GS=s;
-        if(s.groupe&&(s.groupe.nom!==G.nom||s.groupe.code!==G.code)){G.nom=s.groupe.nom;G.code=s.groupe.code;saveGroups();$('#gname').textContent='· '+G.nom+(GROUPS.length>1?' ▾':'');}
+        if(s.groupe&&(s.groupe.nom!==G.nom||s.groupe.code!==G.code||s.groupe.niveau!==G.niveau)){G.nom=s.groupe.nom;G.code=s.groupe.code;G.niveau=s.groupe.niveau;saveGroups();render();}
         const masq=new Set(s.masques||[]);
         const nouveaux=(s.messages||[]).filter(m=>m.id>lastMsg);
         MSGS=MSGS.concat(nouveaux).filter(m=>!masq.has(m.id)).slice(-150);
@@ -351,12 +376,13 @@ function renderDefis(soft){
   const d=GS.defi,admin=GS.groupe.admin_id===G.membre_id;
   const mb=GS.membres;
   $('#main').innerHTML=`
+  ${!GS.groupe.niveau&&admin?`<div class="banner sun" style="margin-top:18px"><div class="ic">🎓</div><div style="flex:1"><b>Choisis le niveau de ton groupe</b><br><span style="font-size:15px">Les matières et le temps de réponse s'adapteront. Ce choix est définitif.</span><br><button class="btn" style="margin-top:10px" onclick="choisirNiveauUneFois()">Choisir le niveau</button></div></div>`:''}
   ${d?`<div class="banner violet" style="margin-top:18px"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueuse${d.joueurs>1?'s':''}<br>
      <button class="btn" style="margin-top:10px" onclick="joinDefi('${d.id}')">${d.etat==='attente'?'Rejoindre le défi':'Entrer dans le défi'} →</button></div></div>`:
   `<div class="card" style="margin-top:18px">
     <h2>⚡ Lancer un défi en direct</h2>
     <p class="sub" style="margin:0 0 6px">Tout le monde répond en même temps. Plus tu réponds vite et juste, plus tu gagnes de points !</p>
-    <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATIERES.map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
+    <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATS().map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
     <div class="row" style="align-items:center;margin-bottom:12px"><span style="flex:1;font-weight:500">Nombre de questions</span>${[5,10,15].map(n=>`<button class="chip ${newDefi.nb===n?'on':''}" onclick="newDefi.nb=${n};renderDefis()">${n}</button>`).join('')}</div>
     <button class="btn full" onclick="createDefi()">Créer le défi</button>
     <p class="meta" style="margin:8px 0 0">📚 ${GS.nb_questions} question${GS.nb_questions>1?'s':''} dans la banque du groupe.</p>
@@ -419,7 +445,7 @@ function renderDefi(force){
   const q=s.question;
   let h='';
   if(s.etat==='attente'){
-    h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · 20 secondes par question</p>
+    h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · ${s.duree} secondes par question</p>
     <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
     ${s.createur_id===G.membre_id?`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueuse${s.joueurs.length>1?'s':''})</button><p class="meta center" style="margin-top:8px">Attends que tes copines aient rejoint avant de lancer !</p>`
       :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que l'organisatrice lance le défi…</p>`}
@@ -468,7 +494,7 @@ function quitDefi(){if(DF)clearTimeout(DF.loop);DF=null;pollSoon();render();}
 async function cancelDefi(){if(!DF)return;try{await call('annuler_defi',{p_defi:DF.id});}catch(e){}quitDefi();}
 
 /* ===== DISCUSSION ===== */
-const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏'];
+const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏','👍','⭐'];
 function msgHtml(m){
   if(BLOQ.includes(m.membre_id))return '';
   const me=m.membre_id===G.membre_id;
@@ -476,7 +502,7 @@ function msgHtml(m){
 }
 function renderChat(){
   $('#main').innerHTML=`
-  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentille 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte.</div></div>
+  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil(le) 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte.</div></div>
   <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋</p>'}</div><div id="chatEnd"></div>
   <div class="composer">
     <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
@@ -580,7 +606,7 @@ function renderAjout(){
   <h1>✍️ Nouvelle question</h1>
   <div class="card">
     <label class="l">Matière</label>
-    <div class="chips">${MATIERES.map(m=>`<button class="chip ${f.matiere===m.id?'on':''}" onclick="keepForm();RV.form.matiere='${m.id}';renderAjout()">${m.e} ${m.n}</button>`).join('')}</div>
+    <div class="chips">${MATS().map(m=>`<button class="chip ${f.matiere===m.id?'on':''}" onclick="keepForm();RV.form.matiere='${m.id}';renderAjout()">${m.e} ${m.n}</button>`).join('')}</div>
     <label class="l">La question</label>
     <textarea id="fQ" maxlength="220" style="min-height:80px" placeholder="Ex. : Quel est le participe passé du verbe « prendre » ?">${esc(f.q||'')}</textarea>
     <label class="l">Les réponses <span class="meta">(coche la bonne · 2 réponses minimum)</span></label>
@@ -619,7 +645,7 @@ function renderAgenda(){
   $('#main').innerHTML=`<h1>Mon agenda 📅</h1>
   ${timerCard()}
   <div class="card"><h2>➕ Ajouter un devoir</h2>
-    <div class="chips">${MATIERES.map(m=>`<button class="chip ${agM===m.id?'on':''}" onclick="agKeep();agM='${m.id}';renderAgenda()">${m.e} ${m.n}</button>`).join('')}</div>
+    <div class="chips">${(G?MATS():MATIERES).map(m=>`<button class="chip ${agM===m.id?'on':''}" onclick="agKeep();agM='${m.id}';renderAgenda()">${m.e} ${m.n}</button>`).join('')}</div>
     <input type="text" id="agT" maxlength="160" placeholder="Ex. : exercices 3 et 4 page 52">
     <label class="l">Pour le</label><input type="date" id="agD" value="${addDays(t,1)}" min="${t}">
     <button class="btn full" style="margin-top:12px" onclick="addDevoir()">Ajouter</button></div>
@@ -654,12 +680,21 @@ function openSettings(){
   ${GROUPS.length>1||G?`<button class="btn light full" style="margin-bottom:6px" onclick="openGroups()">👭 Mes groupes (${GROUPS.length}) · changer / ajouter</button>`:''}
   ${G?`<div class="card"><h2>👭 Groupe « ${esc(G.nom)} »</h2><div class="codebox">${esc(G.code)}</div>
     <button class="btn ghost full" onclick="openInvite()">📨 Inviter des copines</button>
+    ${GS&&GS.groupe.niveau?`<p style="margin:10px 0 0">🎓 Niveau : <b>${NIV_LABEL[GS.groupe.niveau]}</b> <span class="meta">(définitif)</span></p>`:''}
     ${admin?`<button class="btn light full" style="margin-top:10px" onclick="newCode()">🔄 Changer le code du groupe</button><p class="meta" style="margin:6px 0 0">L'ancien code ne marchera plus. Les membres actuelles restent dans le groupe.</p>`:''}
     ${bl?`<button class="btn light full" style="margin-top:10px" onclick="BLOQ=[];LS.set('bloques',[]);toast('Messages de nouveau visibles');closeModal()">Revoir les messages masqués (${bl} personne${bl>1?'s':''})</button>`:''}
     <button class="btn coral full" style="margin-top:10px" onclick="askLeave()">Quitter le groupe</button></div>`:''}
   <div class="card"><h2>👨‍👩‍👧 Pour les parents</h2><p style="margin:0;font-size:14px">Révizz ne demande ni e-mail ni nom de famille. Les messages passent par un filtre (insultes, numéros, adresses, réseaux sociaux, liens), peuvent être signalés et sont effacés après 30 jours. L'administratrice d'un groupe peut retirer un membre. Quitter le groupe efface le pseudo, les messages et les points de l'enfant.<br><br>En cas de harcèlement : <b>3020</b> (gratuit). Enfance en danger : <b>119</b> (gratuit, 24h/24).</p></div>
   <button class="btn light full" onclick="resetProfil()">Changer de pseudo / d'avatar</button>`);
 }
+function choisirNiveauUneFois(){
+  modal(`<h2>🎓 Niveau du groupe</h2><p class="sub">Choisis le niveau de ton groupe. <b>Attention : ce choix est définitif.</b> Il adapte les matières et le temps de réponse aux défis.</p>
+  ${NIVEAUX.map(c=>`<div class="meta" style="margin-top:6px">${c.cycle}</div><div class="chips" style="margin:4px 0 6px">${c.l.map(n=>`<button class="chip" onclick="confirmerNiveau('${n}')">${NIV_LABEL[n]}</button>`).join('')}</div>`).join('')}`);
+}
+function confirmerNiveau(n){
+  modal(`<h2>${NIV_LABEL[n]} ?</h2><p class="sub">Le niveau ne pourra plus être modifié ensuite.</p><div class="row"><button class="btn light" onclick="choisirNiveauUneFois()">Changer</button><button class="btn" onclick="validerNiveau('${n}')">Confirmer</button></div>`);
+}
+async function validerNiveau(n){try{await call('definir_niveau',{p_niveau:n});closeModal();toast('Niveau enregistré ✅');GS.groupe.niveau=n;G.niveau=n;saveGroups();render();}catch(e){toast(errMsg(e));closeModal();pollSoon();}}
 async function newCode(){try{const r=await call('changer_code');G.code=r.code;saveGroups();openSettings();toast('Nouveau code : '+r.code,4000);}catch(e){toast(errMsg(e));}}
 function askLeave(){modal(`<h2>Quitter le groupe ?</h2><p class="sub">Ton pseudo, tes messages et tes points seront effacés. Tes questions restent dans la banque, sans ton nom. Tu pourras rejoindre un groupe plus tard.</p><div class="row"><button class="btn light" onclick="openSettings()">Annuler</button><button class="btn coral" onclick="doLeave()">Quitter</button></div>`);}
 async function doLeave(){try{await call('quitter_groupe');}catch(e){}closeModal();leaveLocal();toast('Tu as quitté le groupe');}
