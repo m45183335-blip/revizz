@@ -186,7 +186,7 @@ const ERR={
   lien:"Les liens ne sont pas autorisés.",trop_vite:"Doucement 😄 attends quelques secondes.",trop_long:"Message trop long (300 caractères max).",vide:"Le message est vide.",
   pseudo_pris:"Ce pseudo est déjà pris dans ce groupe.",pseudo_invalide:"Ton pseudo doit faire entre 2 et 20 caractères.",nom_invalide:"Le nom du groupe doit faire entre 1 et 40 caractères.",
   code_inconnu:"Ce code de groupe n'existe pas. Vérifie-le !",groupe_plein:"Ce groupe est complet (40 personnes).",
-  pas_assez_questions:"Il faut au moins 3 questions dans la banque (pour cette matière) pour lancer un défi. Ajoutez-en dans « Réviser » !",
+  pas_assez_questions:"Pas encore assez de questions pour cette matière (3 minimum). De nouvelles questions ⚡ Révizz arrivent chaque nuit !",
   defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
   introuvable:"Introuvable (déjà supprimé ?).",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
@@ -216,7 +216,7 @@ let BLOQ=LS.get('bloques',[]);
 let GS=null;                         // état du groupe
 let MSGS=[],lastMsg=0,seenMsg=G?(G.seen||0):0;
 let TAB='defis';
-function resetGroupState(){GS=null;MSGS=[];lastMsg=0;seenMsg=G?(G.seen||0):0;if(DF)clearTimeout(DF.loop);DF=null;RV.list=null;RV.view='home';}
+function resetGroupState(){GS=null;MSGS=[];lastMsg=0;seenMsg=G?(G.seen||0):0;if(DF)clearTimeout(DF.loop);DF=null;FI={list:null,niv:null,mat:null,id:null};}
 function leaveLocal(){const id=G&&G.membre_id;GROUPS=GROUPS.filter(g=>g.membre_id!==id);G=GROUPS[0]||null;saveGroups();resetGroupState();TAB='defis';go('defis');}
 function switchGroup(mid){const g=GROUPS.find(x=>x.membre_id===mid);if(!g)return;G=g;JOINING=false;saveGroups();resetGroupState();closeModal();TAB='defis';go('defis');poll();}
 function openGroups(){
@@ -547,101 +547,58 @@ async function reportMsg(id){
 }
 function blockUser(mid){BLOQ.push(mid);LS.set('bloques',BLOQ);closeModal();renderChat();toast('Tu ne verras plus ses messages (modifiable dans ⚙️)');}
 
-/* ===== RÉVISER ===== */
-let RV={view:'home',filtre:null,list:null,quiz:null,form:{matiere:null,choix:['','','',''],bonne:0}};
-async function loadQuestions(){try{RV.list=await call('lister_questions',{p_matiere:null});}catch(e){RV.list=RV.list||[];}}
+/* ===== RÉVISER : fiches de révision ===== */
+let FI={list:null,niv:null,mat:null,id:null};
+let APPRISES=LS.get('apprises',[]);
+const isApprise=id=>APPRISES.includes(id);
+async function loadFiches(){try{FI.list=await call('lister_fiches');FI.niv=NIV();}catch(e){FI.list=FI.list||[];}}
+const nl2br=t=>esc(t||'').replace(/\n/g,'<br>');
 async function renderReviser(){
-  if(RV.view==='quiz')return renderQuiz();
-  if(RV.view==='ajout')return renderAjout();
-  if(RV.view==='banque')return renderBanque();
-  if(!RV.list){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';await loadQuestions();if(TAB!=='reviser'||RV.view!=='home')return;}
-  const L=RV.list,count=id=>L.filter(q=>q.matiere===id).length;
-  const mine=L.filter(q=>q.moi).length,off=L.filter(q=>q.officielle).length;
-  const duJour=L.filter(q=>q.officielle&&q.jour===dayStr());
-  $('#main').innerHTML=`
-  <h1>Réviser 📚</h1>
-  <p class="sub"><b>${L.length}</b> question${L.length>1?'s':''} disponible${L.length>1?'s':''} : ${off} ⚡ Révizz et ${L.length-off} écrite${L.length-off>1?'s':''} par le groupe (dont ${mine} par toi).</p>
-  ${duJour.length?`<div class="card" style="background:linear-gradient(135deg,#6D4AFF,#E94BA8);border:none;color:#fff">
-    <h2>⚡ Les questions du jour</h2>
-    <p style="margin:0 0 12px;font-size:15px">${duJour.length} nouvelle${duJour.length>1?'s':''} question${duJour.length>1?'s':''} pour ton niveau, préparée${duJour.length>1?'s':''} cette nuit.</p>
-    <button class="btn full" style="background:#fff;color:#6D4AFF" onclick="startQuiz(true)">Faire le quiz du jour</button>
-  </div>`:''}
-  <div class="card" style="background:var(--violet-l);border:none">
-    <h2>✍️ Ajouter une question</h2>
-    <p style="margin:0 0 12px;font-size:15px">Écrire une question, c'est déjà réviser ! Prends ta leçon et transforme-la en QCM pour le groupe (+3 ⭐).</p>
-    <button class="btn full" onclick="RV.view='ajout';renderReviser()">Écrire une question</button>
-  </div>
-  <div class="card">
-    <h2>🎯 Quiz solo</h2>
-    <p class="sub" style="margin:0 0 6px">10 questions au hasard, à ton rythme.</p>
-    <div class="chips"><button class="chip ${!RV.filtre?'on':''}" onclick="RV.filtre=null;renderReviser()">Toutes (${L.length})</button>${MATIERES.filter(m=>count(m.id)).map(m=>`<button class="chip ${RV.filtre===m.id?'on':''}" onclick="RV.filtre='${m.id}';renderReviser()">${m.e} ${m.n} (${count(m.id)})</button>`).join('')}</div>
-    <button class="btn mint full" onclick="startQuiz()" ${L.length?'':'disabled'}>Commencer</button>
-  </div>
-  <button class="btn ghost full" onclick="RV.view='banque';renderReviser()">📋 Voir toutes les questions</button>`;
-}
-function startQuiz(duJour){
-  const pool=(duJour?RV.list.filter(q=>q.officielle&&q.jour===dayStr()):RV.list.filter(q=>!RV.filtre||q.matiere===RV.filtre)).sort(()=>Math.random()-.5).slice(0,10);
-  if(!pool.length){toast('Pas encore de questions ici');return;}
-  RV.quiz={qs:pool,i:0,rep:null,ok:0};RV.view='quiz';renderReviser();
-}
-function renderQuiz(){
-  const Q=RV.quiz;
-  if(Q.i>=Q.qs.length){
-    const pts=Math.min(10,Q.ok);
-    call('points_solo',{p_points:pts}).then(pollSoon).catch(()=>{});
-    if(Q.ok===Q.qs.length)confetti();
-    $('#main').innerHTML=`<h1 class="center">Quiz terminé !</h1><div class="big">${Q.ok===Q.qs.length?'💯':Q.ok>=Q.qs.length/2?'👏':'💪'}</div>
-    <p class="center" style="font-size:22px;font-weight:700;margin:0">${Q.ok} / ${Q.qs.length}</p><p class="center sub">+${pts} ⭐ pour le classement (60 max par jour)</p>
-    <div class="row"><button class="btn" onclick="startQuiz()">Rejouer</button><button class="btn ghost" onclick="RV.view='home';renderReviser()">Retour</button></div>`;
-    return;
+  if(!FI.list||FI.niv!==NIV()){
+    $('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';
+    await loadFiches();if(TAB!=='reviser')return;
   }
-  const q=Q.qs[Q.i];
-  $('#main').innerHTML=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">${Q.i+1} / ${Q.qs.length}</b><button class="mini" onclick="RV.view='home';renderReviser()">✕ Arrêter</button></div>
-  <div class="qbar"><i style="width:${Q.i/Q.qs.length*100}%"></i></div>
-  ${tag(q.matiere)}<span class="meta">question de ${esc(q.auteur||'?')}</span>
-  <div class="qtext" style="text-align:left;font-size:20px">${esc(q.question)}</div>
-  ${q.choix.map((c,k)=>{let cl='';if(Q.rep!=null){if(k===q.bonne)cl='ok';else if(k===Q.rep)cl='ko';}return `<button class="qopt ${cl}" ${Q.rep!=null?'disabled':''} onclick="quizRep(${k})">${esc(c)}</button>`;}).join('')}
-  ${Q.rep!=null?`<div class="expl">${Q.rep===q.bonne?'✅ Bravo !':'❌ Pas tout à fait.'} ${esc(q.explication||'')}</div>
-  <div class="row"><button class="btn" onclick="RV.quiz.i++;RV.quiz.rep=null;renderQuiz()">Suivante →</button></div>
-  <button class="mini" style="color:var(--soft);margin-top:8px" onclick="reportQ('${q.id}')">⚑ Signaler une erreur ou une question méchante</button>`:''}`;
+  if(FI.id)return renderFiche();
+  if(FI.mat)return renderMatiere();
+  const L=FI.list,niv=NIV();
+  const ids=[...new Set([...MATS().map(m=>m.id),...L.map(f=>f.matiere)])].filter(id=>L.some(f=>f.matiere===id));
+  const nbA=L.filter(f=>isApprise(f.id)).length;
+  $('#main').innerHTML=`
+  <h1>Fiches de révision 📚</h1>
+  <p class="sub">${GS&&GS.groupe.niveau?'Niveau <b>'+esc(NIV_LABEL[niv]||niv)+'</b> · ':''}${L.length} fiche${L.length>1?'s':''}${L.length?` · ${nbA} apprise${nbA>1?'s':''} ✓`:''}</p>
+  ${!GS||!GS.groupe.niveau?`<div class="banner sun"><div class="ic">🎓</div><div>Le niveau du groupe n'est pas encore choisi : les fiches apparaîtront dès qu'il le sera.</div></div>`:''}
+  ${L.length?ids.map(id=>{const m=M(id),fs=L.filter(f=>f.matiere===id),a=fs.filter(f=>isApprise(f.id)).length;
+    return `<button class="card" style="display:block;width:100%;text-align:left;margin:10px 0;padding:14px 16px" onclick="FI.mat='${id}';renderReviser();window.scrollTo(0,0)">
+      <div style="display:flex;align-items:center;gap:12px"><span style="font-size:30px">${m.e}</span><span style="flex:1"><b style="font-size:17px">${esc(m.n)}</b><br><span class="meta">${fs.length} fiche${fs.length>1?'s':''} · ${a} apprise${a>1?'s':''}</span></span><span style="color:var(--soft);font-size:20px">›</span></div>
+      <div class="bar" style="margin:10px 0 0"><i style="width:${fs.length?Math.round(a/fs.length*100):0}%;background:${m.c}"></i></div></button>`;}).join('')
+  :`<div class="card center"><div style="font-size:40px">⚡</div><p style="margin:6px 0 0">Les fiches de ton niveau sont en préparation.<br><span class="meta">De nouvelles fiches arrivent chaque nuit.</span></p></div>`}`;
 }
-function quizRep(k){const Q=RV.quiz;Q.rep=k;if(k===Q.qs[Q.i].bonne)Q.ok++;renderQuiz();}
-async function reportQ(id){try{const r=await call('signaler_question',{p_question:id});toast(r.masque?'Question retirée':'Merci, c\'est signalé 💜');RV.list=null;}catch(e){toast(errMsg(e));}}
-function renderAjout(){
-  const f=RV.form;
-  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="keepForm();RV.view='home';renderReviser()">← Retour</button>
-  <h1>✍️ Nouvelle question</h1>
-  <div class="card">
-    <label class="l">Matière</label>
-    <div class="chips">${MATS().map(m=>`<button class="chip ${f.matiere===m.id?'on':''}" onclick="keepForm();RV.form.matiere='${m.id}';renderAjout()">${m.e} ${m.n}</button>`).join('')}</div>
-    <label class="l">La question</label>
-    <textarea id="fQ" maxlength="220" style="min-height:80px" placeholder="Ex. : Quel est le participe passé du verbe « prendre » ?">${esc(f.q||'')}</textarea>
-    <label class="l">Les réponses <span class="meta">(coche la bonne · 2 réponses minimum)</span></label>
-    ${f.choix.map((c,k)=>`<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><input type="radio" name="bonne" ${f.bonne===k?'checked':''} onchange="RV.form.bonne=${k}" style="width:24px;height:24px;flex:none"><input type="text" id="fC${k}" maxlength="80" placeholder="Réponse ${'ABCD'[k]}${k<2?'':' (facultatif)'}" value="${esc(c)}"></div>`).join('')}
-    <label class="l">Explication <span class="meta">(facultatif, mais ça aide !)</span></label>
-    <input type="text" id="fE" maxlength="220" placeholder="Pourquoi c'est la bonne réponse ?" value="${esc(f.e||'')}">
-  </div>
-  <button class="btn full" onclick="submitQ()">Ajouter à la banque du groupe</button>`;
+function renderMatiere(){
+  const m=M(FI.mat),fs=FI.list.filter(f=>f.matiere===FI.mat);
+  const sujets=[...new Set(fs.map(f=>f.sujet))];
+  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="FI.mat=null;renderReviser()">← Toutes les matières</button>
+  <h1>${m.e} ${esc(m.n)}</h1>
+  ${sujets.map(su=>`<div class="card"><h2>${esc(su)}</h2>${fs.filter(f=>f.sujet===su).map(f=>`<div class="task" style="cursor:pointer" onclick="FI.id='${f.id}';renderReviser();window.scrollTo(0,0)"><span class="cb ${isApprise(f.id)?'on':''}" style="display:inline-flex;align-items:center;justify-content:center">${isApprise(f.id)?'✓':''}</span><div class="x"><div class="txt" style="font-weight:500">${esc(f.titre)}</div></div><span style="color:var(--soft)">›</span></div>`).join('')}</div>`).join('')}`;
 }
-function keepForm(){const f=RV.form;const q=$('#fQ');if(!q)return;f.q=q.value;f.e=$('#fE').value;f.choix=[0,1,2,3].map(k=>$('#fC'+k).value);}
-async function submitQ(){
-  keepForm();const f=RV.form;
-  if(!f.matiere){toast('Choisis la matière');return;}
-  if((f.q||'').trim().length<3){toast('Écris la question');return;}
-  const idx=[0,1,2,3].filter(k=>f.choix[k].trim());
-  if(idx.length<2){toast('Il faut au moins 2 réponses');return;}
-  if(!f.choix[f.bonne].trim()){toast('La bonne réponse cochée est vide');return;}
-  const choix=idx.map(k=>f.choix[k].trim()),bonne=idx.indexOf(f.bonne);
-  try{await call('ajouter_question',{p_matiere:f.matiere,p_question:f.q.trim(),p_choix:choix,p_bonne:bonne,p_explication:(f.e||'').trim()||null});
-    toast('Question ajoutée ! +3 ⭐');RV.form={matiere:f.matiere,choix:['','','',''],bonne:0};RV.list=null;pollSoon();renderAjout();}
-  catch(e){toast(errMsg(e),4000);}
+function renderFiche(){
+  const f=FI.list.find(x=>x.id===FI.id);if(!f){FI.id=null;return renderReviser();}
+  const fs=FI.list.filter(x=>x.matiere===f.matiere),k=fs.findIndex(x=>x.id===f.id),c=f.contenu||{},m=M(f.matiere);
+  const ok=isApprise(f.id);
+  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="FI.id=null;renderReviser();window.scrollTo(0,0)">← ${m.e} ${esc(m.n)}</button>
+  <div style="margin-top:8px">${tag(f.matiere)}<span class="meta">${esc(f.sujet)}</span></div>
+  <h1 style="margin-top:8px">${esc(f.titre)}</h1>
+  ${c.intro?`<p style="margin:6px 0 0">${nl2br(c.intro)}</p>`:''}
+  ${(c.points&&c.points.length)?`<div class="card"><h2>📌 L'essentiel</h2><ul style="margin:0;padding-left:20px">${c.points.map(p=>`<li style="margin:6px 0">${nl2br(p)}</li>`).join('')}</ul></div>`:''}
+  ${c.exemple?`<div class="banner sky"><div class="ic">💡</div><div><b>Exemple</b><br>${nl2br(c.exemple)}</div></div>`:''}
+  ${c.retenir?`<div class="banner sun"><div class="ic">⭐</div><div><b>À retenir</b><br>${nl2br(c.retenir)}</div></div>`:''}
+  ${c.astuce?`<div class="banner mint"><div class="ic">🧠</div><div><b>Astuce</b><br>${nl2br(c.astuce)}</div></div>`:''}
+  <button class="btn ${ok?'mint':''} full" style="margin-top:6px" onclick="toggleApprise('${f.id}')">${ok?'✓ Fiche apprise':'Je l\'ai apprise ✓'}</button>
+  <div class="row" style="margin-top:10px">${k>0?`<button class="btn light" onclick="FI.id='${fs[k-1].id}';renderReviser();window.scrollTo(0,0)">← Précédente</button>`:''}${k<fs.length-1?`<button class="btn light" onclick="FI.id='${fs[k+1].id}';renderReviser();window.scrollTo(0,0)">Suivante →</button>`:''}</div>`;
 }
-function renderBanque(){
-  const L=RV.list||[];
-  $('#main').innerHTML=`<button class="mini" style="margin-top:14px" onclick="RV.view='home';renderReviser()">← Retour</button>
-  <h1>📋 Banque du groupe</h1>
-  <div class="card">${L.length?L.map(q=>`<div class="qitem"><div>${tag(q.matiere)}<span class="meta">${esc(q.avatar||'')} ${esc(q.auteur||'?')}</span></div><div style="font-weight:500;margin:4px 0">${esc(q.question)}</div><div class="meta">✓ ${esc(q.choix[q.bonne])}</div>
-   <button class="mini" style="color:var(--soft)" onclick="reportQ('${q.id}').then(()=>{RV.list=null;RV.view='home';renderReviser()})">${q.moi?'🗑️ Supprimer':(q.officielle&&GS&&GS.groupe.admin_id===G.membre_id)?'🙈 Masquer pour le groupe':'⚑ Signaler'}</button></div>`).join(''):'<p class="empty">Aucune question pour le moment.</p>'}</div>`;
+function toggleApprise(id){
+  if(isApprise(id)){APPRISES=APPRISES.filter(x=>x!==id);}
+  else{APPRISES.push(id);call('points_solo',{p_points:2}).then(pollSoon).catch(()=>{});toast('Bravo ! +2 ⭐');}
+  LS.set('apprises',APPRISES);renderFiche();
 }
 
 /* ===== AGENDA (sur l'appareil) ===== */
