@@ -218,7 +218,7 @@ let BLOQ=LS.get('bloques',[]);
 let GS=null;                         // état du groupe
 let MSGS=[],lastMsg=0,seenMsg=G?(G.seen||0):0;
 let TAB='defis';
-function resetGroupState(){GS=null;MSGS=[];lastMsg=0;seenMsg=G?(G.seen||0):0;if(DF)clearTimeout(DF.loop);DF=null;FI={list:null,niv:null,mat:null,id:null};}
+function resetGroupState(){DJL=null;DJLt=0;DJ=null;GS=null;MSGS=[];lastMsg=0;seenMsg=G?(G.seen||0):0;if(DF)clearTimeout(DF.loop);DF=null;FI={list:null,niv:null,mat:null,id:null};}
 function leaveLocal(){const id=G&&G.membre_id;GROUPS=GROUPS.filter(g=>g.membre_id!==id);G=GROUPS[0]||null;saveGroups();resetGroupState();TAB='defis';go('defis');}
 function switchGroup(mid){const g=GROUPS.find(x=>x.membre_id===mid);if(!g)return;G=g;JOINING=false;saveGroups();resetGroupState();closeModal();TAB='defis';go('defis');poll();}
 function openGroups(){
@@ -238,7 +238,7 @@ function render(){
   if(!P||!P.ok)return renderWelcome();
   if(TAB==='agenda')return renderAgenda();
   if(!G||JOINING)return renderJoin(inv);
-  if(TAB==='defis')return DF?renderDefi(true):renderDefis();
+  if(TAB==='defis')return DJ?renderDJ():DF?renderDefi(true):renderDefis();
   if(TAB==='chat')return renderChat();
   if(TAB==='reviser')return renderReviser();
 }
@@ -355,7 +355,7 @@ async function poll(){
         if(nouveaux.length)lastMsg=Math.max(lastMsg,...nouveaux.map(m=>m.id));
         refreshPts();updateUnread();
         if(TAB==='chat')appendChat(nouveaux);
-        else if(TAB==='defis'&&!DF&&!JOINING)renderDefis(true);
+        else if(TAB==='defis'&&!DF&&!DJ&&!JOINING)renderDefis(true);
       }
     }catch(e){}
     polling=false;
@@ -379,11 +379,13 @@ function renderDefis(soft){
   if(!GS){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';return;}
   const d=GS.defi,admin=GS.groupe.admin_id===G.membre_id;
   const mb=GS.membres;
+  loadDJL();
   $('#main').innerHTML=`
+  ${djCard()}
   ${!GS.groupe.niveau&&admin?`<div class="banner sun" style="margin-top:18px"><div class="ic">🎓</div><div style="flex:1"><b>Choisis le niveau de ton groupe</b><br><span style="font-size:15px">Les matières et le temps de réponse s'adapteront. Ce choix est définitif.</span><br><button class="btn" style="margin-top:10px" onclick="choisirNiveauUneFois()">Choisir le niveau</button></div></div>`:''}
-  ${d?`<div class="banner violet" style="margin-top:18px"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueuse${d.joueurs>1?'s':''}<br>
+  ${d?`<div class="banner violet"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueuse${d.joueurs>1?'s':''}<br>
      <button class="btn" style="margin-top:10px" onclick="joinDefi('${d.id}')">${d.etat==='attente'?'Rejoindre le défi':'Entrer dans le défi'} →</button></div></div>`:
-  `<div class="card" style="margin-top:18px">
+  `<div class="card">
     <h2>⚡ Lancer un défi en direct</h2>
     <p class="sub" style="margin:0 0 6px">Tout le monde répond en même temps. Plus tu réponds vite et juste, plus tu gagnes de points !</p>
     <div class="chips"><button class="chip ${!newDefi.matiere?'on':''}" onclick="newDefi.matiere=null;renderDefis()">Toutes</button>${MATS().map(m=>`<button class="chip ${newDefi.matiere===m.id?'on':''}" onclick="newDefi.matiere='${m.id}';renderDefis()">${m.e} ${m.n}</button>`).join('')}</div>
@@ -432,6 +434,86 @@ async function maybeAdvance(){
   try{await call('avancer_defi',{p_defi:s.id,p_etat:s.etat,p_idx:s.idx});}catch(e){}
   me.adv=false;if(DF===me){clearTimeout(me.loop);defiLoop();}
 }
+/* ===== DÉFIS DU JOUR (chacun à son rythme) ===== */
+let DJL=null,DJLt=0,DJ=null;
+async function loadDJL(force){
+  if(!G||(!force&&Date.now()-DJLt<20000))return;DJLt=Date.now();
+  try{const l=await call('defis_du_jour');const chg=JSON.stringify(l)!==JSON.stringify(DJL);DJL=l;if(chg&&TAB==='defis'&&!DF&&!DJ&&!JOINING)renderDefis(true);}catch(e){}
+}
+function djCard(){
+  if(!DJL)return `<div class="card" style="margin-top:18px"><h2>📅 Défis du jour</h2><p class="empty"><span class="dots"><span></span><span></span><span></span></span></p></div>`;
+  if(!DJL.length)return `<div class="card" style="margin-top:18px"><h2>📅 Défis du jour</h2><p class="meta" style="margin:0">Les défis du jour arrivent dès qu'il y a au moins 3 questions pour ton niveau.</p></div>`;
+  return `<div class="card" style="margin-top:18px;background:linear-gradient(135deg,#6D4AFF,#E94BA8);border:none;color:#fff">
+    <h2>📅 Défis du jour</h2><p style="margin:0 0 12px;font-size:14px;opacity:.9">3 nouveaux défis chaque jour. Joue quand tu veux, à ton rythme !</p>
+    ${DJL.map(d=>{const me=d.moi,rang=d.classement.findIndex(c=>c.id===G.membre_id)+1,fin=d.classement.filter(c=>c.fini).length;
+      const st=!me||(!me.fini&&me.idx===0)?'À jouer':me.fini?`✅ ${me.bonnes}/${d.total} · ${me.score} pts${rang?` · ${rang}${rang===1?'re':'e'}`:''}`:`En cours : ${me.idx}/${d.total}`;
+      return `<div style="background:rgba(255,255,255,.16);border-radius:14px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:10px">
+        <div style="flex:1"><b>⚡ ${d.taille} questions</b><br><span style="font-size:13px;opacity:.9">${st}${d.total<d.taille?` · ${d.total} dispo`:''}</span></div>
+        <button class="mini" style="color:#fff;font-size:13px" onclick="djClassement('${d.id}')">🏆 ${fin}</button>
+        ${me&&me.fini?'':`<button class="btn" style="background:#fff;color:#6D4AFF;min-height:40px;padding:8px 14px" onclick="openDJ('${d.id}')">${me&&me.idx>0?'Continuer':'Jouer'}</button>`}
+      </div>`;}).join('')}
+  </div>`;
+}
+function djClassement(id){
+  const d=(DJL||[]).find(x=>x.id===id);if(!d)return;
+  modal(`<h2>🏆 Défi du jour · ${d.taille} questions</h2>
+  ${d.classement.length?d.classement.map((c,i)=>`<div class="rank"><span class="n">${c.fini?(i<3?['🥇','🥈','🥉'][i]:i+1):'…'}</span><span class="a">${esc(c.avatar)}</span><span class="p">${esc(c.pseudo)}${c.id===G.membre_id?' <span class="meta">(moi)</span>':''}<br><span class="meta">${c.fini?`${c.bonnes}/${d.total} bonnes réponses`:`en cours : ${c.idx}/${d.total}`}</span></span><span class="s">${c.score}</span></div>`).join(''):'<p class="empty">Personne n\'a encore joué. Sois la première personne !</p>'}`);
+}
+async function openDJ(id){DJ={id,s:null,recv:0,rep:null,busy:false,sent:false};TAB='defis';render();await djLoad();}
+async function djLoad(){
+  const me=DJ;if(!me)return;
+  try{const s=await call('jouer_defi_jour',{p_defi:me.id});if(DJ!==me)return;me.s=s;me.recv=performance.now();me.rep=null;me.sent=false;renderDJ();}
+  catch(e){toast(errMsg(e));DJ=null;loadDJL(true);render();}
+}
+const djElapsed=()=>DJ&&DJ.s?(DJ.s.ecoule_ms+(performance.now()-DJ.recv))/1000:0;
+async function djAnswer(k){
+  const me=DJ;if(!me||!me.s||me.sent)return;me.sent=true;me.pick=k;renderDJ();
+  try{me.rep=await call('repondre_defi_jour',{p_defi:me.id,p_idx:me.s.idx,p_choix:k});if(me.rep.correct)me.rep.k=k;}
+  catch(e){me.rep={correct:false,bonne:null,points:0,erreur:true};}
+  if(DJ===me)renderDJ();
+}
+function djQuit(){DJ=null;loadDJL(true);pollSoon();render();}
+function renderDJ(){
+  const d=DJ;if(!d)return;const s=d.s;const info=(DJL||[]).find(x=>x.id===d.id);
+  if(!s){$('#main').innerHTML='<p class="empty" style="margin-top:40px"><span class="dots"><span></span><span></span><span></span></span></p>';return;}
+  if(s.fini){
+    const cl=info?info.classement:[];
+    $('#main').innerHTML=`<h1 class="center">🎉 Défi terminé !</h1>
+    <div class="stat"><div><b>${s.bonnes}/${s.total}</b><small>bonnes réponses</small></div><div><b>${s.score}</b><small>points</small></div><div><b>+${s.bonnes*2}</b><small>⭐ semaine</small></div></div>
+    <p class="meta center" style="margin-top:12px">Le classement de ce défi se remplit au fur et à mesure que les autres jouent.</p>
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="djQuit()">Retour aux défis</button>${info?`<button class="btn ghost" onclick="djClassement('${d.id}')">🏆 Classement</button>`:''}</div>`;
+    if(s.bonnes===s.total&&s.total>0)confetti();
+    loadDJL(true);return;
+  }
+  const q=s.question,r=d.rep;
+  if(r){
+    const fin=r.fini;
+    $('#main').innerHTML=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">Question ${s.idx+1}/${s.total}</b><span class="pill">${r.score!=null?r.score:s.score} pts</span></div>
+    <div class="big">${r.correct?'🎉':d.pick===-1?'⏱':'😅'}</div>
+    <p class="center" style="margin:0;font-weight:600;font-size:20px">${r.correct?'Bravo ! +'+r.points:d.pick===-1?'Temps écoulé !':'Raté !'}</p>
+    <div class="qtext" style="font-size:18px">${esc(q.texte)}</div>
+    <div class="answers">${q.choix.map((c,k)=>`<div class="ans c${k} ${k===r.bonne?'good':(k===d.pick?'pick dim':'dim')}"><span class="sh">${SHAPES[k]}</span><span style="flex:1">${esc(c)}</span></div>`).join('')}</div>
+    ${r.explication?`<div class="banner sky"><div class="ic">💡</div><div>${esc(r.explication)}</div></div>`:''}
+    <button class="btn full" style="margin-top:8px" onclick="djLoad()">${fin?'Voir mon résultat 🏁':'Question suivante →'}</button>`;
+    return;
+  }
+  const left=Math.max(0,s.duree-djElapsed());
+  $('#main').innerHTML=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">📅 Question ${s.idx+1}/${s.total}</b><span class="pill">⏱ <span id="djleft">${Math.ceil(left)}</span></span></div>
+  <div class="qbar"><i id="djbar" style="width:${left/s.duree*100}%"></i></div>
+  ${tag(q.matiere)}${q.auteur?`<span class="meta">question de ${esc(q.auteur)}</span>`:''}
+  <div class="qtext">${esc(q.texte)}</div>
+  <div class="answers">${q.choix.map((c,k)=>`<button class="ans c${k} ${d.sent?(d.pick===k?'pick':'dim'):''}" ${d.sent?'disabled':''} onclick="djAnswer(${k})"><span class="sh">${SHAPES[k]}</span>${esc(c)}</button>`).join('')}</div>
+  <p class="center meta" style="margin-top:14px">${s.score} pts · ${s.bonnes} bonne${s.bonnes>1?'s':''} réponse${s.bonnes>1?'s':''}</p>
+  <button class="mini" style="display:block;margin:4px auto;color:var(--soft)" onclick="djQuit()">⏸ Faire une pause</button>
+  <p class="meta center" style="margin:0;font-size:12px">Si tu pars pendant une question, elle compte comme ratée.</p>`;
+}
+setInterval(()=>{ // minuteur des défis du jour
+  if(!DJ||!DJ.s||DJ.s.fini||DJ.rep||TAB!=='defis')return;
+  const left=Math.max(0,DJ.s.duree-djElapsed());
+  const b=$('#djbar');if(b)b.style.width=(left/DJ.s.duree*100)+'%';const t=$('#djleft');if(t)t.textContent=Math.ceil(left);
+  if(left<=0&&!DJ.sent)djAnswer(-1);
+},250);
+
 setInterval(()=>{ // minuteur affiché
   if(!DF||!DF.s||TAB!=='defis')return;const s=DF.s;
   if(s.etat==='question'){const left=Math.max(0,s.duree-elapsed());const b=$('#qbar');if(b)b.style.width=(left/s.duree*100)+'%';const t=$('#qleft');if(t)t.textContent=Math.ceil(left);}
