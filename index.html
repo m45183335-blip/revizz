@@ -193,8 +193,10 @@ const ERR={
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
-  try{r=await fetch(API_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({'Content-Type':'application/json','apikey':API_KEY},API_KEY.startsWith('sb_')?{}:{'Authorization':'Bearer '+API_KEY}),body:JSON.stringify(args)});}
-  catch(e){throw{code:'reseau'};}
+  const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
+  try{r=await fetch(API_URL+'/rest/v1/rpc/'+fn,{signal:ctl.signal,method:'POST',headers:Object.assign({'Content-Type':'application/json','apikey':API_KEY},API_KEY.startsWith('sb_')?{}:{'Authorization':'Bearer '+API_KEY}),body:JSON.stringify(args)});}
+  catch(e){clearTimeout(tm);throw{code:'reseau'};}
+  clearTimeout(tm);
   const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
   if(!r.ok)throw{code:(j&&j.message)||'erreur'};
   return j;
@@ -361,7 +363,9 @@ async function poll(){
   pollT=setTimeout(poll,(TAB==='chat'||(TAB==='defis'&&!DF))?3000:8000);
 }
 function pollSoon(){clearTimeout(pollT);pollT=setTimeout(poll,150);}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollSoon();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){polling=false;pollSoon();}});
+window.addEventListener('online',()=>{polling=false;pollSoon();});
+window.addEventListener('focus',()=>pollSoon());
 function updateUnread(){
   const n=MSGS.filter(m=>m.id>seenMsg&&m.membre_id!==(G&&G.membre_id)&&!BLOQ.includes(m.membre_id)).length;
   const u=$('#unread');if(TAB==='chat'||!n){u.style.display='none';if(TAB==='chat')markSeen();}else{u.style.display='';u.textContent=n>9?'9+':n;}
@@ -497,7 +501,7 @@ async function cancelDefi(){if(!DF)return;try{await call('annuler_defi',{p_defi:
 /* ===== DISCUSSION ===== */
 const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏','👍','⭐'];
 function msgHtml(m){
-  if(BLOQ.includes(m.membre_id))return '';
+  if(BLOQ.includes(m.membre_id))return `<div class="msg them" data-id="${m.id}" style="opacity:.7"><span class="meta">🙈 Message de ${esc(m.pseudo)} (masqué par toi)</span> <button class="mini" onclick="unblockUser('${m.membre_id}')">Afficher</button></div>`;
   const me=m.membre_id===G.membre_id;
   return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w">${esc(m.avatar)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span>${me?`<button class="flag" style="opacity:1;font-size:17px;padding-left:8px" title="Supprimer mon message" aria-label="Supprimer mon message" onclick="askDeleteMsg(${m.id})">🗑️</button>`:`<button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button>`}</div>`;
 }
@@ -550,6 +554,7 @@ async function reportMsg(id){
     else toast('Merci, le message a été signalé 💜');}
   catch(e){toast(errMsg(e));}
 }
+function unblockUser(mid){BLOQ=BLOQ.filter(x=>x!==mid);LS.set('bloques',BLOQ);renderChat();setTimeout(()=>{const c=$('#chatEnd');c&&c.scrollIntoView();},30);toast('Ses messages sont de nouveau visibles');}
 function blockUser(mid){BLOQ.push(mid);LS.set('bloques',BLOQ);closeModal();renderChat();toast('Tu ne verras plus ses messages (modifiable dans ⚙️)');}
 
 /* ===== RÉVISER : fiches de révision ===== */
