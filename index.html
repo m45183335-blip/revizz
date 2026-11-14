@@ -127,6 +127,7 @@ label.l{display:block;font-weight:600;margin:12px 0 6px}
   <button class="iconbtn" onclick="openSettings()" aria-label="Réglages">⚙️</button>
 </div></header>
 <div class="wrap" id="main"><p class="empty" style="margin-top:40px">Chargement…</p></div>
+<div id="defiBar" style="display:none;position:fixed;left:12px;right:12px;top:calc(68px + env(safe-area-inset-top));z-index:25;max-width:696px;margin:0 auto"></div>
 <nav id="nav" style="display:none"><div class="nv">
   <button data-t="defis" onclick="go('defis')"><span>🏆</span>Défis</button>
   <button data-t="chat" onclick="go('chat')"><span>💬</span>Discussion<b class="dot" id="unread" style="display:none"></b></button>
@@ -189,7 +190,7 @@ const ERR={
   pas_assez_questions:"Pas encore assez de questions pour cette matière (3 minimum). De nouvelles questions ⚡ Révizz arrivent chaque nuit !",
   defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
-  introuvable:"Introuvable (déjà supprimé ?).",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
+  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
@@ -229,7 +230,7 @@ function openGroups(){
 }
 
 /* ===== navigation ===== */
-function go(t){TAB=t;document.querySelectorAll('.nv button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));render();window.scrollTo(0,0);if(t==='chat'){markSeen();setTimeout(()=>{const c=$('#chatEnd');c&&c.scrollIntoView();},30);}pollSoon();}
+function go(t){TAB=t;setTimeout(updateDefiBar,0);document.querySelectorAll('.nv button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));render();window.scrollTo(0,0);if(t==='chat'){markSeen();setTimeout(()=>{const c=$('#chatEnd');c&&c.scrollIntoView();},30);}pollSoon();}
 function render(){
   const inv=new URLSearchParams(location.search).get('code');
   $('#nav').style.display=(P&&P.ok)?'':'none';
@@ -353,7 +354,7 @@ async function poll(){
         const nouveaux=(s.messages||[]).filter(m=>m.id>lastMsg);
         MSGS=MSGS.concat(nouveaux).filter(m=>!masq.has(m.id)).slice(-150);
         if(nouveaux.length)lastMsg=Math.max(lastMsg,...nouveaux.map(m=>m.id));
-        refreshPts();updateUnread();
+        refreshPts();updateUnread();updateDefiBar();
         if(TAB==='chat')appendChat(nouveaux);
         else if(TAB==='defis'&&!DF&&!DJ&&!JOINING)renderDefis(true);
       }
@@ -366,6 +367,14 @@ function pollSoon(){clearTimeout(pollT);pollT=setTimeout(poll,150);}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){polling=false;pollSoon();}});
 window.addEventListener('online',()=>{polling=false;pollSoon();});
 window.addEventListener('focus',()=>pollSoon());
+function updateDefiBar(){
+  const el=$('#defiBar');if(!el)return;const d=GS&&GS.defi;
+  const dedans=DF&&d&&DF.id===d.id;
+  if(!d||dedans||DJ||(TAB==='defis'&&!DF)||!(P&&P.ok)){el.style.display='none';return;}
+  const c=GS.membres.find(m=>m.id===d.createur_id),qui=c?c.pseudo:"Quelqu'un";
+  el.innerHTML=`<button class="btn full" style="background:linear-gradient(135deg,#6D4AFF,#E94BA8);box-shadow:0 6px 18px rgba(0,0,0,.18)" onclick="joinDefi('${d.id}')">⚡ ${d.etat==='attente'?esc(qui)+" t'attend pour un défi !":'Un défi est en cours !'} Rejoindre →</button>`;
+  el.style.display='';
+}
 function updateUnread(){
   const n=MSGS.filter(m=>m.id>seenMsg&&m.membre_id!==(G&&G.membre_id)&&!BLOQ.includes(m.membre_id)).length;
   const u=$('#unread');if(TAB==='chat'||!n){u.style.display='none';if(TAB==='chat')markSeen();}else{u.style.display='';u.textContent=n>9?'9+':n;}
@@ -534,7 +543,7 @@ function renderDefi(force){
   if(s.etat==='attente'){
     h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · ${s.duree} secondes par question</p>
     <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
-    ${s.createur_id===G.membre_id?`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueuse${s.joueurs.length>1?'s':''})</button><p class="meta center" style="margin-top:8px">Attends que tes copines aient rejoint avant de lancer !</p>`
+    ${s.createur_id===G.membre_id?`${s.joueurs.length<2?`<button class="btn mint full" disabled>⏳ En attente d'autres joueurs…</button><p class="meta center" style="margin-top:8px">Il faut au moins 2 joueurs pour lancer le défi. Les autres membres du groupe sont prévenus.</p>`:`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueurs)</button><p class="meta center" style="margin-top:8px">Attends que tout le monde ait rejoint avant de lancer !</p>`}`
       :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que l'organisatrice lance le défi…</p>`}
     <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${chef?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
   }else if(s.etat==='question'){
