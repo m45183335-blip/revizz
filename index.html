@@ -212,7 +212,7 @@ if(!GROUPS){const old=LS.get('groupe',null);GROUPS=old?[old]:[];}
 let G=GROUPS.find(g=>g.membre_id===LS.get('courant',null))||GROUPS[0]||null;
 let JOINING=false;
 let CN=null;                         // niveau choisi à la création                   // écran « rejoindre / créer » ouvert alors qu'on a déjà un groupe
-const MAX_GROUPES=6;
+const MAX_GROUPES=10;
 function saveGroups(){LS.set('groupes',GROUPS);LS.set('courant',G?G.membre_id:null);}
 let AG=LS.get('agenda',{items:[]});
 let BLOQ=LS.get('bloques',[]);
