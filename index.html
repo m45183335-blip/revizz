@@ -190,7 +190,7 @@ const ERR={
   pas_assez_questions:"Pas encore assez de questions pour cette matière (3 minimum). De nouvelles questions ⚡ Révizz arrivent chaque nuit !",
   defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
-  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
+  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",pas_createur_annuler:"Seule la personne qui a créé le défi peut l'annuler.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
@@ -545,7 +545,7 @@ function renderDefi(force){
     <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
     ${s.createur_id===G.membre_id?`${s.joueurs.length<2?`<button class="btn mint full" disabled>⏳ En attente d'autres joueurs…</button><p class="meta center" style="margin-top:8px">Il faut au moins 2 joueurs pour lancer le défi. Les autres membres du groupe sont prévenus.</p>`:`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueurs)</button><p class="meta center" style="margin-top:8px">Attends que tout le monde ait rejoint avant de lancer !</p>`}`
       :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que l'organisatrice lance le défi…</p>`}
-    <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${chef?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
+    <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${s.createur_id===G.membre_id?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
   }else if(s.etat==='question'){
     const mine=s.ma_reponse;
     h=`<div style="display:flex;align-items:center;margin-top:14px"><b style="flex:1">Question ${s.idx+1}/${s.total}</b><span class="pill">⏱ <span id="qleft">${Math.ceil(Math.max(0,s.duree-elapsed()))}</span></span></div>
@@ -587,7 +587,7 @@ async function answer(idx,k){
   clearTimeout(DF.loop);defiLoop();
 }
 function quitDefi(){if(DF)clearTimeout(DF.loop);DF=null;pollSoon();render();}
-async function cancelDefi(){if(!DF)return;try{await call('annuler_defi',{p_defi:DF.id});}catch(e){}quitDefi();}
+async function cancelDefi(){if(!DF)return;try{await call('annuler_defi',{p_defi:DF.id});quitDefi();}catch(e){toast(errMsg(e));}}
 
 /* ===== DISCUSSION ===== */
 const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏','👍','⭐'];
