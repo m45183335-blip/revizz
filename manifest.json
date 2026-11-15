@@ -1,7 +1,7 @@
 {
   "name": "Révizz",
   "short_name": "Révizz",
-  "description": "Révise avec tes copines : quiz, défis en direct et classement de la semaine.",
+  "description": "Révise avec tes amis : quiz, défis en direct et classement de la semaine.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

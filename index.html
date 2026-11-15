@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Révizz</title>
-<meta name="description" content="Révise avec tes copines : quiz, défis en direct et classement de la semaine.">
+<meta name="description" content="Révise avec tes amis : quiz, défis en direct et classement de la semaine.">
 <meta name="theme-color" content="#6D4AFF">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -181,16 +181,16 @@ const AVATARS=['😎','🔥','⚡','💎','👑','🎧','🎮','🛹','🏀','�
 
 /* ===== serveur ===== */
 const ERR={
-  acces_refuse:"Ton accès à ce groupe n'est plus valide.",exclu:"Tu as été retirée de ce groupe par son administratrice.",
+  acces_refuse:"Ton accès à ce groupe n'est plus valide.",exclu:"Tu as été retiré de ce groupe par son administrateur.",
   mot_blessant:"Ce texte contient un mot qui peut blesser. Reformule gentiment 💜",
   info_perso:"Pour ta sécurité : pas de numéro, d'adresse, d'e-mail ni de réseau social ici.",
   lien:"Les liens ne sont pas autorisés.",trop_vite:"Doucement 😄 attends quelques secondes.",trop_long:"Message trop long (300 caractères max).",vide:"Le message est vide.",
   pseudo_pris:"Ce pseudo est déjà pris dans ce groupe.",pseudo_invalide:"Ton pseudo doit faire entre 2 et 20 caractères.",nom_invalide:"Le nom du groupe doit faire entre 1 et 40 caractères.",
   code_inconnu:"Ce code de groupe n'existe pas. Vérifie-le !",groupe_plein:"Ce groupe est complet (40 personnes).",
   pas_assez_questions:"Pas encore assez de questions pour cette matière (3 minimum). De nouvelles questions ⚡ Révizz arrivent chaque nuit !",
-  defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seule la créatrice du défi peut le lancer.",pas_admin:"Réservé à l'administratrice du groupe.",
+  defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seul le créateur du défi peut le lancer.",pas_admin:"Réservé à l'administrateur du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
-  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",pas_createur_annuler:"Seule la personne qui a créé le défi peut l'annuler.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
+  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",pas_createur_annuler:"Seul le créateur du défi peut l'annuler.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
@@ -250,7 +250,7 @@ let W={avatar:'😎'};
 function renderWelcome(){
   $('#main').innerHTML=`
   <h1>Bienvenue sur Révizz ⚡</h1>
-  <p class="sub">Révise avec tes copines : crée des questions, lancez des défis en direct et grimpez dans le classement de la semaine !</p>
+  <p class="sub">Révise avec tes amis : lancez des défis en direct et grimpez dans le classement de la semaine !</p>
   <div class="card">
     <label class="l">Choisis ton pseudo</label>
     <input type="text" id="wPseudo" maxlength="20" placeholder="Ex. : Léa_licorne" value="${esc(W.pseudo||'')}">
@@ -261,7 +261,7 @@ function renderWelcome(){
   <div class="card">
     <h2>📜 Les règles du groupe</h2>
     <ul style="margin:0 0 10px;padding-left:20px;font-size:15px">
-      <li>Je suis gentil(le) avec tout le monde, même quand je gagne ou je perds.</li>
+      <li>Je suis gentil avec tout le monde, même quand je gagne ou je perds.</li>
       <li>Je ne partage jamais mon adresse, mon numéro, mes réseaux sociaux ni de photos.</li>
       <li>Si un message me met mal à l'aise, je le signale ⚑ et j'en parle à un adulte.</li>
       <li>Je n'invite que des personnes que je connais en vrai.</li>
@@ -284,7 +284,7 @@ function renderJoin(inv){
   $('#main').innerHTML=`
   ${GROUPS.length?`<button class="mini" style="margin-top:14px" onclick="JOINING=false;history.replaceState(null,'',location.pathname);render()">← Retour à mon groupe</button>`:''}
   <h1>${GROUPS.length?'Un autre groupe ?':`Salut ${esc(P.avatar)} ${esc(P.pseudo)} !`}</h1>
-  <p class="sub">${GROUPS.length?'Tu peux faire partie de plusieurs groupes (classe, club, cousines…).':'Rejoins le groupe de tes copines ou crée le tien.'}</p>
+  <p class="sub">${GROUPS.length?'Tu peux faire partie de plusieurs groupes (classe, club, cousins…).':'Rejoins le groupe de tes amis ou crée le tien.'}</p>
   ${GROUPS.length>=MAX_GROUPES?`<div class="banner sun"><div class="ic">✋</div><div>Tu es déjà dans ${MAX_GROUPES} groupes, c'est le maximum. Quitte-en un dans ⚙️ pour en rejoindre un autre.</div></div>`:''}
   <div class="card">
     <h2>🔑 Rejoindre un groupe</h2>
@@ -299,7 +299,7 @@ function renderJoin(inv){
     <label class="l">Code de création</label>
     <input type="text" id="cSecret" maxlength="30" placeholder="Demande-le à un parent 🔐" autocomplete="off" style="text-transform:uppercase">
     <p class="meta" style="margin:6px 0 0">Pour créer un groupe, il faut le code secret donné par un parent.</p>
-    <button class="btn ghost full" style="margin-top:12px" onclick="createGroup()">Créer et inviter mes copines</button>
+    <button class="btn ghost full" style="margin-top:12px" onclick="createGroup()">Créer et inviter mes amis</button>
   </div>`;
 }
 async function joinGroup(){
@@ -327,7 +327,7 @@ function setGroup(r,token){
 }
 function inviteLink(){return location.origin+location.pathname+'?code='+G.code;}
 function openInvite(){
-  modal(`<h2>📨 Inviter mes copines</h2>
+  modal(`<h2>📨 Inviter mes amis</h2>
   <p class="sub">Envoie-leur ce lien ou donne-leur le code. N'invite que des personnes que tu connais en vrai !</p>
   <div class="codebox">${esc(G.code)}</div>
   <button class="btn full" onclick="shareInvite()">Partager le lien</button>
@@ -392,7 +392,7 @@ function renderDefis(soft){
   $('#main').innerHTML=`
   ${djCard()}
   ${!GS.groupe.niveau&&admin?`<div class="banner sun" style="margin-top:18px"><div class="ic">🎓</div><div style="flex:1"><b>Choisis le niveau de ton groupe</b><br><span style="font-size:15px">Les matières et le temps de réponse s'adapteront. Ce choix est définitif.</span><br><button class="btn" style="margin-top:10px" onclick="choisirNiveauUneFois()">Choisir le niveau</button></div></div>`:''}
-  ${d?`<div class="banner violet"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueuse${d.joueurs>1?'s':''}<br>
+  ${d?`<div class="banner violet"><div class="ic">⚡</div><div style="flex:1"><b>Défi ${d.etat==='attente'?'en préparation':'en cours'} !</b><br>${d.matiere?tag(d.matiere):'Toutes matières · '}${d.total} questions · ${d.joueurs} joueur${d.joueurs>1?'s':''}<br>
      <button class="btn" style="margin-top:10px" onclick="joinDefi('${d.id}')">${d.etat==='attente'?'Rejoindre le défi':'Entrer dans le défi'} →</button></div></div>`:
   `<div class="card">
     <h2>⚡ Lancer un défi en direct</h2>
@@ -408,14 +408,14 @@ function renderDefis(soft){
     ${mb.map((m,i)=>`<div class="rank"><span class="n">${i<3&&m.semaine>0?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${esc(m.avatar)}${m.en_ligne?'<i></i>':''}</span><span class="p">${esc(m.pseudo)}${m.id===G.membre_id?' <span class="meta">(moi)</span>':''}${m.id===GS.groupe.admin_id?' <span class="meta">👑</span>':''}</span><span class="s">${m.semaine} ⭐</span>${admin&&m.id!==G.membre_id?`<button class="mini" style="color:var(--soft)" onclick="askExclude('${m.id}','${esc(m.pseudo).replace(/'/g,'&#39;')}')">⋯</button>`:''}</div>`).join('')}
     <p class="meta" style="margin:10px 0 0">Le classement repart à zéro chaque lundi. Gagne des points en faisant des défis, des quiz solo et en ajoutant des questions.</p>
   </div>
-  <button class="btn ghost full" onclick="openInvite()">📨 Inviter des copines (code ${esc(G.code)})</button>`;
+  <button class="btn ghost full" onclick="openInvite()">📨 Inviter des amis (code ${esc(G.code)})</button>`;
 }
 function askExclude(id,ps){
-  modal(`<h2>${ps}</h2><p class="sub">Tu es l'administratrice du groupe. Si cette personne ne respecte pas les règles, tu peux la retirer du groupe. Ses messages et questions seront masqués.</p>
+  modal(`<h2>${ps}</h2><p class="sub">Tu es l'administrateur du groupe. Si cette personne ne respecte pas les règles, tu peux la retirer du groupe. Ses messages et questions seront masqués.</p>
   <button class="btn coral full" onclick="doExclude('${id}')">Retirer du groupe</button>
-  <p class="meta" style="margin-top:10px">Astuce : change aussi le code du groupe dans ⚙️ pour qu'elle ne puisse pas revenir.</p>`);
+  <p class="meta" style="margin-top:10px">Astuce : change aussi le code du groupe dans ⚙️ pour que cette personne ne puisse pas revenir.</p>`);
 }
-async function doExclude(id){try{await call('exclure_membre',{p_cible:id});closeModal();toast('Personne retirée du groupe');pollSoon();}catch(e){toast(errMsg(e));}}
+async function doExclude(id){try{await call('exclure_membre',{p_cible:id});closeModal();toast('Membre retiré du groupe');pollSoon();}catch(e){toast(errMsg(e));}}
 async function createDefi(){
   try{const r=await call('creer_defi',{p_matiere:newDefi.matiere,p_nb:newDefi.nb});enterDefi(r.id);}
   catch(e){toast(errMsg(e),4500);if(e.code==='defi_en_cours')pollSoon();}
@@ -466,7 +466,7 @@ function djCard(){
 function djClassement(id){
   const d=(DJL||[]).find(x=>x.id===id);if(!d)return;
   modal(`<h2>🏆 Défi du jour · ${d.taille} questions</h2>
-  ${d.classement.length?d.classement.map((c,i)=>`<div class="rank"><span class="n">${c.fini?(i<3?['🥇','🥈','🥉'][i]:i+1):'…'}</span><span class="a">${esc(c.avatar)}</span><span class="p">${esc(c.pseudo)}${c.id===G.membre_id?' <span class="meta">(moi)</span>':''}<br><span class="meta">${c.fini?`${c.bonnes}/${d.total} bonnes réponses`:`en cours : ${c.idx}/${d.total}`}</span></span><span class="s">${c.score}</span></div>`).join(''):'<p class="empty">Personne n\'a encore joué. Sois la première personne !</p>'}`);
+  ${d.classement.length?d.classement.map((c,i)=>`<div class="rank"><span class="n">${c.fini?(i<3?['🥇','🥈','🥉'][i]:i+1):'…'}</span><span class="a">${esc(c.avatar)}</span><span class="p">${esc(c.pseudo)}${c.id===G.membre_id?' <span class="meta">(moi)</span>':''}<br><span class="meta">${c.fini?`${c.bonnes}/${d.total} bonnes réponses`:`en cours : ${c.idx}/${d.total}`}</span></span><span class="s">${c.score}</span></div>`).join(''):'<p class="empty">Personne n\'a encore joué. Sois le premier !</p>'}`);
 }
 async function openDJ(id){DJ={id,s:null,recv:0,rep:null,busy:false,sent:false};TAB='defis';render();await djLoad();}
 async function djLoad(){
@@ -544,7 +544,7 @@ function renderDefi(force){
     h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · ${s.duree} secondes par question</p>
     <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
     ${s.createur_id===G.membre_id?`${s.joueurs.length<2?`<button class="btn mint full" disabled>⏳ En attente d'autres joueurs…</button><p class="meta center" style="margin-top:8px">Il faut au moins 2 joueurs pour lancer le défi. Les autres membres du groupe sont prévenus.</p>`:`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueurs)</button><p class="meta center" style="margin-top:8px">Attends que tout le monde ait rejoint avant de lancer !</p>`}`
-      :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que l'organisatrice lance le défi…</p>`}
+      :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que le créateur lance le défi…</p>`}
     <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${s.createur_id===G.membre_id?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
   }else if(s.etat==='question'){
     const mine=s.ma_reponse;
@@ -598,7 +598,7 @@ function msgHtml(m){
 }
 function renderChat(){
   $('#main').innerHTML=`
-  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil(le) 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte. Tu peux supprimer tes propres messages avec 🗑️.</div></div>
+  <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte. Tu peux supprimer tes propres messages avec 🗑️.</div></div>
   <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋</p>'}</div><div id="chatEnd"></div>
   <div class="composer">
     <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
@@ -740,16 +740,16 @@ function openSettings(){
   const admin=G&&GS&&GS.groupe.admin_id===G.membre_id;
   const bl=BLOQ.length;
   modal(`<h2>⚙️ Réglages</h2>
-  <div class="card"><b>${esc(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administratrice':''}</div>`:''}</div>
+  <div class="card"><b>${esc(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administrateur':''}</div>`:''}</div>
   ${installHtml()}
   ${GROUPS.length>1||G?`<button class="btn light full" style="margin-bottom:6px" onclick="openGroups()">👭 Mes groupes (${GROUPS.length}) · changer / ajouter</button>`:''}
   ${G?`<div class="card"><h2>👭 Groupe « ${esc(G.nom)} »</h2><div class="codebox">${esc(G.code)}</div>
-    <button class="btn ghost full" onclick="openInvite()">📨 Inviter des copines</button>
+    <button class="btn ghost full" onclick="openInvite()">📨 Inviter des amis</button>
     ${GS&&GS.groupe.niveau?`<p style="margin:10px 0 0">🎓 Niveau : <b>${NIV_LABEL[GS.groupe.niveau]}</b> <span class="meta">(définitif)</span></p>`:''}
-    ${admin?`<button class="btn light full" style="margin-top:10px" onclick="newCode()">🔄 Changer le code du groupe</button><p class="meta" style="margin:6px 0 0">L'ancien code ne marchera plus. Les membres actuelles restent dans le groupe.</p>`:''}
+    ${admin?`<button class="btn light full" style="margin-top:10px" onclick="newCode()">🔄 Changer le code du groupe</button><p class="meta" style="margin:6px 0 0">L'ancien code ne marchera plus. Les membres actuels restent dans le groupe.</p>`:''}
     ${bl?`<button class="btn light full" style="margin-top:10px" onclick="BLOQ=[];LS.set('bloques',[]);toast('Messages de nouveau visibles');closeModal()">Revoir les messages masqués (${bl} personne${bl>1?'s':''})</button>`:''}
     <button class="btn coral full" style="margin-top:10px" onclick="askLeave()">Quitter le groupe</button></div>`:''}
-  <div class="card"><h2>👨‍👩‍👧 Pour les parents</h2><p style="margin:0;font-size:14px">Révizz ne demande ni e-mail ni nom de famille. Les messages passent par un filtre (insultes, numéros, adresses, réseaux sociaux, liens), peuvent être signalés et sont effacés après 30 jours. L'administratrice d'un groupe peut retirer un membre. Quitter le groupe efface le pseudo, les messages et les points de l'enfant.<br><br>En cas de harcèlement : <b>3020</b> (gratuit). Enfance en danger : <b>119</b> (gratuit, 24h/24).</p></div>
+  <div class="card"><h2>👨‍👩‍👧 Pour les parents</h2><p style="margin:0;font-size:14px">Révizz ne demande ni e-mail ni nom de famille. Les messages passent par un filtre (insultes, numéros, adresses, réseaux sociaux, liens), peuvent être signalés et sont effacés après 30 jours. L'administrateur d'un groupe peut retirer un membre. Quitter le groupe efface le pseudo, les messages et les points de l'enfant.<br><br>En cas de harcèlement : <b>3020</b> (gratuit). Enfance en danger : <b>119</b> (gratuit, 24h/24).</p></div>
   <button class="btn light full" onclick="resetProfil()">Changer de pseudo / d'avatar</button>`);
 }
 function choisirNiveauUneFois(){
