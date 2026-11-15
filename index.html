@@ -600,7 +600,7 @@ function msgHtml(m){
 function renderChat(){
   $('#main').innerHTML=`
   <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte. Tu peux supprimer tes propres messages avec 🗑️.</div></div>
-  <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋</p>'}</div><div id="chatEnd"></div>
+  <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋<br><span class="meta">Tu vois les messages envoyés depuis ton arrivée dans le groupe.</span></p>'}</div><div id="chatEnd"></div>
   <div class="composer">
     <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
     <div class="in"><textarea id="txt" rows="1" maxlength="300" placeholder="Écris un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea><button class="send" onclick="sendMsg()" aria-label="Envoyer">➤</button></div>
