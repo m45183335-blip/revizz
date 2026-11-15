@@ -190,7 +190,7 @@ const ERR={
   pas_assez_questions:"Pas encore assez de questions pour cette matière (3 minimum). De nouvelles questions ⚡ Révizz arrivent chaque nuit !",
   defi_en_cours:"Un défi est déjà en cours dans le groupe : rejoins-le !",trop_tard:"Trop tard pour cette question ⏱",pas_createur:"Seul le créateur du défi peut le lancer.",pas_admin:"Réservé à l'administrateur du groupe.",
   trop_de_questions:"Tu as ajouté beaucoup de questions aujourd'hui, reviens demain !",question_invalide:"La question est trop courte.",choix_invalides:"Vérifie les réponses (2 à 4, 80 caractères max).",
-  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",defi_commence:"Ce défi a déjà commencé : tu pourras participer au prochain !",pas_createur_annuler:"Seul le créateur du défi peut l'annuler.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Trop d'essais. Réessaie dans une heure.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
+  introuvable:"Introuvable (déjà supprimé ?).",pas_assez_joueurs:"Il faut au moins 2 joueurs pour lancer le défi.",defi_commence:"Ce défi a déjà commencé : tu pourras participer au prochain !",pas_createur_annuler:"Seul le créateur du défi peut l'annuler.",code_creation_invalide:"Ce code de création n'est pas le bon. Demande-le à un parent 🔐",creation_fermee:"La création de groupes est fermée pour le moment.",trop_de_tentatives:"Beaucoup de groupes viennent d'être créés. Réessaie un peu plus tard.",niveau_invalide:"Choisis un niveau.",niveau_definitif:"Le niveau du groupe est déjà choisi : il ne peut plus être changé.",mise_a_jour_requise:"Recharge l'appli pour avoir la dernière version.",reseau:"Pas de connexion internet 📶 Réessaie."};
 const errMsg=e=>ERR[e&&e.code]||"Oups, une erreur s'est produite. Réessaie.";
 async function rpc(fn,args){
   let r;
@@ -296,9 +296,6 @@ function renderJoin(inv){
     <input type="text" id="cNom" maxlength="40" placeholder="Nom du groupe, ex. : Les 5e B">
     <label class="l">Niveau du groupe <span class="meta">(définitif)</span></label>
     ${NIVEAUX.map(c=>`<div class="meta" style="margin-top:6px">${c.cycle}</div><div class="chips" style="margin:4px 0 6px">${c.l.map(n=>`<button class="chip nivchip ${CN===n?'on':''}" onclick="CN='${n}';document.querySelectorAll('.nivchip').forEach(b=>b.classList.toggle('on',b.dataset.n===CN))" data-n="${n}">${NIV_LABEL[n]}</button>`).join('')}</div>`).join('')}
-    <label class="l">Code de création</label>
-    <input type="text" id="cSecret" maxlength="30" placeholder="Demande-le à un parent 🔐" autocomplete="off" style="text-transform:uppercase">
-    <p class="meta" style="margin:6px 0 0">Pour créer un groupe, il faut le code secret donné par un parent.</p>
     <button class="btn ghost full" style="margin-top:12px" onclick="createGroup()">Créer et inviter mes amis</button>
   </div>`;
 }
@@ -313,10 +310,9 @@ async function joinGroup(){
 async function createGroup(){
   const nom=$('#cNom').value.trim();if(!nom){toast('Donne un nom à ton groupe');return;}
   if(!CN){toast('Choisis le niveau du groupe');return;}
-  const secret=$('#cSecret').value.trim();if(!secret){toast('Il faut le code de création (demande-le à un parent)');return;}
   if(GROUPS.length>=MAX_GROUPES){toast('Maximum '+MAX_GROUPES+' groupes');return;}
   const token=newToken();
-  try{const r=await rpc('creer_groupe',{p_nom:nom,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token,p_code_creation:secret,p_niveau:CN});if(r&&r.erreur)throw{code:r.erreur};setGroup(r,token);openInvite();}
+  try{const r=await rpc('creer_groupe',{p_nom:nom,p_pseudo:P.pseudo,p_avatar:P.avatar,p_token:token,p_code_creation:null,p_niveau:CN});if(r&&r.erreur)throw{code:r.erreur};setGroup(r,token);openInvite();}
   catch(e){toast(errMsg(e),4000);}
 }
 function setGroup(r,token){

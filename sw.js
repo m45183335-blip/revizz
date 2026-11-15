@@ -1,5 +1,5 @@
 // Révizz — fonctionne hors ligne pour l'agenda et le minuteur
-const CACHE = 'revizz-v18';
+const CACHE = 'revizz-v19';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
