@@ -457,7 +457,7 @@ function djCard(){
     ${DJL.map(d=>{const me=d.moi,rang=d.classement.findIndex(c=>c.id===G.membre_id)+1,fin=d.classement.filter(c=>c.fini).length;
       const st=!me||(!me.fini&&me.idx===0)?'À jouer':me.fini?`✅ ${me.bonnes}/${d.total} · ${me.score} pts${rang?` · ${rang}${rang===1?'re':'e'}`:''}`:`En cours : ${me.idx}/${d.total}`;
       return `<div style="background:rgba(255,255,255,.16);border-radius:14px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:10px">
-        <div style="flex:1"><b>⚡ ${d.taille} questions</b><br><span style="font-size:13px;opacity:.9">${st}${d.total<d.taille?` · ${d.total} dispo`:''}</span></div>
+        <div style="flex:1"><b>⚡ ${d.taille} questions</b><br><span style="font-size:13px;opacity:.9">${st}</span></div>
         <button class="mini" style="color:#fff;font-size:13px" onclick="djClassement('${d.id}')">🏆 ${fin}</button>
         ${me&&me.fini?'':`<button class="btn" style="background:#fff;color:#6D4AFF;min-height:40px;padding:8px 14px" onclick="openDJ('${d.id}')">${me&&me.idx>0?'Continuer':'Jouer'}</button>`}
       </div>`;}).join('')}
