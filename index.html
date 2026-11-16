@@ -178,7 +178,6 @@ function NIV(){return (GS&&GS.groupe&&GS.groupe.niveau)||(G&&G.niveau)||'5e';}
 function MATS(){return (MATS_PAR_NIVEAU[NIV()]||MATS_PAR_NIVEAU['5e']).map(M);}
 function M(id){return MATIERES.find(m=>m.id===id)||MATIERES[MATIERES.length-1];}
 const tag=id=>{const m=M(id);return `<span class="tag" style="background:${m.c}22;color:${m.c}">${m.e} ${esc(m.n)}</span>`;};
-const AVATARS=['😎','🔥','⚡','💎','👑','🎧','🎮','🛹','🏀','⚽','🎤','📸','🎨','🌙','🌈','🦋','🐺','🍕'];
 
 /* ===== serveur ===== */
 const ERR={
@@ -247,17 +246,90 @@ function render(){
 function refreshPts(){const b=$('#mypts');if(G&&GS){const me=GS.membres.find(m=>m.id===G.membre_id);if(me){b.style.display='';b.textContent='⭐ '+me.semaine;return;}}b.style.display='none';}
 
 /* ===== bienvenue ===== */
-let W={avatar:'😎'};
+/* ===== skins (avatars personnalisés) ===== */
+// code skin : « ~ » + 7 chiffres : fond, peau, coiffure, couleur des cheveux, yeux, bouche, accessoire
+const SKIN={
+  fonds:['#7B6CF6','#E94BA8','#2FB38A','#4BA3E3','#F2785C','#F4B740','#2E2A3B','#9A5BD6','#E0567A','#5B7A8C'],
+  peaux:['#FFE0C7','#F6CBA4','#E8B48A','#D49A6A','#B97A4E','#9C6644','#7A4A2A','#5C3A21','#F1C27D','#C68642'],
+  cheveux:['#1F1A17','#4A2E1C','#7B4A2A','#B5651D','#E6B85C','#F3E1A0','#C0392B','#8E44AD','#2E86DE','#ECECEC'],
+  coiffures:['Courte','Longue','Bouclée','Chignon','Crête','Casquette','Bonnet','Couettes'],
+  yeux:['Ronds','Joyeux','Brillants',"Clin d'œil",'Lunettes de soleil','Lunettes','Endormis','Étoiles'],
+  bouches:['Sourire','Grand sourire','Neutre','Oh !','Langue','En coin'],
+  accessoires:['Aucun','Casque audio','Taches de rousseur',"Boucles d'oreilles",'Joues roses','Pansement']
+};
+const estSkin=a=>typeof a==='string'&&/^~\d{7}$/.test(a);
+function skinAleatoire(){const r=n=>Math.floor(Math.random()*n);return '~'+[r(10),r(10),r(8),r(10),r(8),r(6),r(6)].join('');}
+function skinSvg(code,taille){
+  const [f,p,c,hc,y,b,a]=code.slice(1).split('').map(Number);
+  const F=SKIN.fonds[f]||SKIN.fonds[0],P=SKIN.peaux[p]||SKIN.peaux[0],H=SKIN.cheveux[hc]||SKIN.cheveux[0],D='#2E2A3B';
+  const id='k'+code.slice(1)+Math.random().toString(36).slice(2,6);
+  let back='',front='',eyes='',mouth='',acc='',over='';
+  // cheveux derrière la tête
+  if(c===1)back=`<path d="M15 31 Q14 11 32 11 Q50 11 49 31 L50 47 Q41 43 32 43 Q23 43 14 47 Z" fill="${H}"/>`;
+  if(c===7)back=`<circle cx="13" cy="33" r="6.5" fill="${H}"/><circle cx="51" cy="33" r="6.5" fill="${H}"/>`;
+  // cheveux devant / couvre-chef
+  const courte=`<path d="M17 29 Q16 13 32 13 Q48 13 47 29 Q43 20 32 21 Q21 20 17 29 Z" fill="${H}"/>`;
+  if(c===0||c===7)front=courte;
+  if(c===1)front=`<path d="M17 31 Q16 12 32 12 Q48 12 47 31 Q45 22 37 19 Q29 25 17 31 Z" fill="${H}"/>`;
+  if(c===2)front=[[18,21],[23,16],[29,14],[35,14],[41,16],[46,21],[17,27],[47,27]].map(([x,yy])=>`<circle cx="${x}" cy="${yy}" r="5.2" fill="${H}"/>`).join('');
+  if(c===3)front=`<circle cx="32" cy="11" r="6.5" fill="${H}"/>`+courte;
+  if(c===4)front=`<path d="M18 27 Q18 19 25 17 L39 17 Q46 19 46 27 Q41 22 32 22 Q23 22 18 27 Z" fill="${H}" opacity=".55"/><path d="M27 22 Q30 2 32 2 Q34 2 37 22 Z" fill="${H}"/>`;
+  if(c===5)front=courte+`<path d="M16 25 Q16 11 32 11 Q48 11 48 25 Z" fill="${F}" stroke="${D}" stroke-opacity=".25"/><path d="M31 23 Q47 21 56 26 Q45 28 31 26 Z" fill="${F}" stroke="${D}" stroke-opacity=".25"/>`;
+  if(c===6)front=`<path d="M16 26 Q16 9 32 9 Q48 9 48 26 Z" fill="${H}"/><rect x="15" y="22" width="34" height="6" rx="3" fill="${H}" stroke="#fff" stroke-opacity=".5"/><circle cx="32" cy="8" r="4" fill="#fff"/>`;
+  // yeux
+  const ex=[26,38],ey=31;
+  if(y===0)eyes=ex.map(x=>`<circle cx="${x}" cy="${ey}" r="2.2" fill="${D}"/>`).join('');
+  if(y===1)eyes=ex.map(x=>`<path d="M${x-3} ${ey+1} Q${x} ${ey-3} ${x+3} ${ey+1}" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`).join('');
+  if(y===2)eyes=ex.map(x=>`<circle cx="${x}" cy="${ey}" r="3.2" fill="${D}"/><circle cx="${x+1}" cy="${ey-1.2}" r="1.1" fill="#fff"/>`).join('');
+  if(y===3)eyes=`<circle cx="26" cy="${ey}" r="2.2" fill="${D}"/><path d="M35 ${ey} Q38 ${ey+2.5} 41 ${ey}" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  if(y===4)eyes=`<rect x="20.5" y="27.5" width="10" height="6.5" rx="2.5" fill="#111"/><rect x="33.5" y="27.5" width="10" height="6.5" rx="2.5" fill="#111"/><path d="M30.5 30 L33.5 30" stroke="#111" stroke-width="1.6"/><path d="M22 29.5 L25 29.5" stroke="#fff" stroke-opacity=".6" stroke-width="1"/>`;
+  if(y===5)eyes=ex.map(x=>`<circle cx="${x}" cy="${ey}" r="1.8" fill="${D}"/><circle cx="${x}" cy="${ey}" r="4.4" fill="none" stroke="${D}" stroke-width="1.4"/>`).join('')+`<path d="M30.4 ${ey} L33.6 ${ey}" stroke="${D}" stroke-width="1.4"/>`;
+  if(y===6)eyes=ex.map(x=>`<path d="M${x-3} ${ey} L${x+3} ${ey}" stroke="${D}" stroke-width="1.8" stroke-linecap="round"/>`).join('');
+  if(y===7)eyes=ex.map(x=>`<path d="M${x} ${ey-3.6} L${x+1.1} ${ey-1.1} L${x+3.6} ${ey-1.1} L${x+1.6} ${ey+.6} L${x+2.3} ${ey+3.2} L${x} ${ey+1.7} L${x-2.3} ${ey+3.2} L${x-1.6} ${ey+.6} L${x-3.6} ${ey-1.1} L${x-1.1} ${ey-1.1} Z" fill="#F4B740"/>`).join('');
+  // bouche
+  if(b===0)mouth=`<path d="M27.5 36.5 Q32 40.5 36.5 36.5" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  if(b===1)mouth=`<path d="M26.5 35.5 Q32 44 37.5 35.5 Z" fill="#7A2E2E"/><path d="M27.5 36 L36.5 36 L36 37.3 L28 37.3 Z" fill="#fff"/>`;
+  if(b===2)mouth=`<path d="M28.5 37.5 L35.5 37.5" stroke="${D}" stroke-width="1.8" stroke-linecap="round"/>`;
+  if(b===3)mouth=`<ellipse cx="32" cy="38" rx="2.2" ry="2.6" fill="#7A2E2E"/>`;
+  if(b===4)mouth=`<path d="M27.5 36.5 Q32 40.5 36.5 36.5" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M30.3 38.6 Q32 43 33.7 38.6 Z" fill="#E86A8A"/>`;
+  if(b===5)mouth=`<path d="M28 37.5 Q33 39.5 37 35.5" stroke="${D}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  // accessoires
+  if(a===1)over=`<path d="M14 31 Q14 7 32 7 Q50 7 50 31" stroke="${D}" stroke-width="3" fill="none"/><rect x="10" y="25" width="7" height="11" rx="3.5" fill="#E94BA8"/><rect x="47" y="25" width="7" height="11" rx="3.5" fill="#E94BA8"/>`;
+  if(a===2)acc=[[23,35],[25,37],[21,37],[41,35],[39,37],[43,37]].map(([x,yy])=>`<circle cx="${x}" cy="${yy}" r=".8" fill="#A0522D" opacity=".75"/>`).join('');
+  if(a===3)acc=`<circle cx="16.5" cy="35.5" r="1.8" fill="#F4B740"/><circle cx="47.5" cy="35.5" r="1.8" fill="#F4B740"/>`;
+  if(a===4)acc=`<ellipse cx="22.5" cy="35.5" rx="3" ry="1.8" fill="#FF7FA0" opacity=".55"/><ellipse cx="41.5" cy="35.5" rx="3" ry="1.8" fill="#FF7FA0" opacity=".55"/>`;
+  if(a===5)acc=`<g transform="rotate(-25 41 37)"><rect x="37" y="35" width="8" height="4" rx="1.5" fill="#F3D3A8" stroke="#D9B48A" stroke-width=".6"/><path d="M40 36 L40 38 M42 36 L42 38" stroke="#D9B48A" stroke-width=".5"/></g>`;
+  const t=taille?`width="${taille}" height="${taille}"`:`width="1.2em" height="1.2em"`;
+  return `<svg ${t} viewBox="0 0 64 64" style="vertical-align:middle;display:inline-block" aria-hidden="true"><defs><clipPath id="${id}"><circle cx="32" cy="32" r="32"/></clipPath></defs><g clip-path="url(#${id})"><rect width="64" height="64" fill="${F}"/>${back}<rect x="28" y="40" width="8" height="9" fill="${P}"/><path d="M8 66 Q10 47 32 47 Q54 47 56 66 Z" fill="#fff" opacity=".92"/><circle cx="17" cy="31" r="3.2" fill="${P}"/><circle cx="47" cy="31" r="3.2" fill="${P}"/><circle cx="32" cy="30" r="15" fill="${P}"/>${front}${eyes}${mouth}${acc}${over}</g></svg>`;
+}
+function AV(a,taille){return estSkin(a)?skinSvg(a,taille):esc(a||'');}
+
+let W={skin:skinAleatoire()};
+function wKeep(){const p=$('#wPseudo');if(p)W.pseudo=p.value;const r=$('#wRegles');if(r)W.regles=r.checked;const q=$('#wParents');if(q)W.parents=q.checked;}
+function skinSet(i,v){wKeep();const d=W.skin.slice(1).split('');d[i]=String(v);W.skin='~'+d.join('');renderWelcome();}
+function skinEditeur(){
+  const d=W.skin.slice(1).split('').map(Number);
+  const sw=(arr,i)=>`<div class="chips">${arr.map((col,k)=>`<button onclick="skinSet(${i},${k})" aria-label="Couleur ${k+1}" style="width:34px;height:34px;border-radius:50%;background:${col};border:3px solid ${d[i]===k?'var(--ink)':'#fff'};box-shadow:0 0 0 1px var(--line)"></button>`).join('')}</div>`;
+  const ch=(arr,i)=>`<div class="chips">${arr.map((n,k)=>`<button class="chip ${d[i]===k?'on':''}" onclick="skinSet(${i},${k})">${esc(n)}</button>`).join('')}</div>`;
+  return `<div class="center" style="margin:6px 0 10px">${skinSvg(W.skin,110)}<br><button class="mini" onclick="wKeep();W.skin=skinAleatoire();renderWelcome()">🎲 Au hasard</button></div>
+    <label class="l">Coiffure</label>${ch(SKIN.coiffures,2)}
+    <label class="l">${d[2]===5?'Couleur des cheveux':d[2]===6?'Couleur du bonnet':'Couleur des cheveux'}</label>${sw(SKIN.cheveux,3)}
+    <label class="l">Yeux</label>${ch(SKIN.yeux,4)}
+    <label class="l">Bouche</label>${ch(SKIN.bouches,5)}
+    <label class="l">Accessoire</label>${ch(SKIN.accessoires,6)}
+    <label class="l">Couleur de peau</label>${sw(SKIN.peaux,1)}
+    <label class="l">${d[2]===5?'Fond et casquette':'Couleur du fond'}</label>${sw(SKIN.fonds,0)}`;
+}
 function renderWelcome(){
   $('#main').innerHTML=`
   <h1>Bienvenue sur Révizz ⚡</h1>
   <p class="sub">Révise avec tes amis : lancez des défis en direct et grimpez dans le classement de la semaine !</p>
   <div class="card">
     <label class="l">Choisis ton pseudo</label>
-    <input type="text" id="wPseudo" maxlength="20" placeholder="Ex. : Léa_licorne" value="${esc(W.pseudo||'')}">
+    <input type="text" id="wPseudo" maxlength="20" placeholder="Ex. : Hugo_foot" value="${esc(W.pseudo||'')}">
     <p class="meta" style="margin:6px 0 0">N'utilise pas ton nom de famille.</p>
-    <label class="l">Ton avatar</label>
-    <div class="avatars">${AVATARS.map(a=>`<button class="av ${W.avatar===a?'on':''}" onclick="W.pseudo=$('#wPseudo').value;W.avatar='${a}';renderWelcome()">${a}</button>`).join('')}</div>
+    <label class="l">🎨 Crée ton skin</label>
+    ${skinEditeur()}
   </div>
   <div class="card">
     <h2>📜 Les règles du groupe</h2>
@@ -267,25 +339,25 @@ function renderWelcome(){
       <li>Si un message me met mal à l'aise, je le signale ⚑ et j'en parle à un adulte.</li>
       <li>Je n'invite que des personnes que je connais en vrai.</li>
     </ul>
-    <label class="check"><input type="checkbox" id="wRegles"> J'accepte les règles du groupe.</label>
-    <label class="check"><input type="checkbox" id="wParents"> Mes parents sont d'accord pour que j'utilise Révizz.</label>
+    <label class="check"><input type="checkbox" id="wRegles" ${W.regles?'checked':''}> J'accepte les règles du groupe.</label>
+    <label class="check"><input type="checkbox" id="wParents" ${W.parents?'checked':''}> Mes parents sont d'accord pour que j'utilise Révizz.</label>
   </div>
   <button class="btn full" onclick="finishWelcome()">C'est parti ! 🚀</button>
   <button class="btn light full" style="margin-top:10px" onclick="openRecup()">📱 J'ai déjà Révizz sur un autre téléphone</button>
-  <p class="meta center" style="margin-top:12px">Aucune adresse e-mail demandée. Seuls ton pseudo, ton avatar, tes questions et tes messages sont enregistrés.</p>`;
+  <p class="meta center" style="margin-top:12px">Aucune adresse e-mail demandée. Seuls ton pseudo, ton skin et tes messages sont enregistrés.</p>`;
 }
 function finishWelcome(){
   const ps=$('#wPseudo').value.trim();
   if(ps.length<2){toast('Ton pseudo doit faire au moins 2 caractères');return;}
   if(!$('#wRegles').checked||!$('#wParents').checked){toast('Coche les deux cases pour continuer 🙂');return;}
-  P={pseudo:ps,avatar:W.avatar,ok:true};LS.set('profil',P);TAB='defis';render();
+  P={pseudo:ps,avatar:W.skin,ok:true};LS.set('profil',P);TAB='defis';render();
 }
 
 /* ===== rejoindre / créer un groupe ===== */
 function renderJoin(inv){
   $('#main').innerHTML=`
   ${GROUPS.length?`<button class="mini" style="margin-top:14px" onclick="JOINING=false;history.replaceState(null,'',location.pathname);render()">← Retour à mon groupe</button>`:''}
-  <h1>${GROUPS.length?'Un autre groupe ?':`Salut ${esc(P.avatar)} ${esc(P.pseudo)} !`}</h1>
+  <h1>${GROUPS.length?'Un autre groupe ?':`Salut ${AV(P.avatar)} ${esc(P.pseudo)} !`}</h1>
   <p class="sub">${GROUPS.length?'Tu peux faire partie de plusieurs groupes (classe, club, cousins…).':'Rejoins le groupe de tes amis ou crée le tien.'}</p>
   ${GROUPS.length>=MAX_GROUPES?`<div class="banner sun"><div class="ic">✋</div><div>Tu es déjà dans ${MAX_GROUPES} groupes, c'est le maximum. Quitte-en un dans ⚙️ pour en rejoindre un autre.</div></div>`:''}
   ${GROUPS.length?'':`<button class="btn light full" style="margin-top:6px" onclick="openRecup()">📱 J'ai déjà Révizz sur un autre téléphone</button>`}
@@ -405,7 +477,7 @@ function renderDefis(soft){
   </div>`}
   <div class="card">
     <h2>🏆 Classement de la semaine</h2>
-    ${mb.map((m,i)=>`<div class="rank"><span class="n">${i<3&&m.semaine>0?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${esc(m.avatar)}${m.en_ligne?'<i></i>':''}</span><span class="p">${esc(m.pseudo)}${m.id===G.membre_id?' <span class="meta">(moi)</span>':''}${m.id===GS.groupe.admin_id?' <span class="meta">👑</span>':''}</span><span class="s">${m.semaine} ⭐</span>${admin&&m.id!==G.membre_id?`<button class="mini" style="color:var(--soft)" onclick="askExclude('${m.id}','${esc(m.pseudo).replace(/'/g,'&#39;')}')">⋯</button>`:''}</div>`).join('')}
+    ${mb.map((m,i)=>`<div class="rank"><span class="n">${i<3&&m.semaine>0?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${AV(m.avatar)}${m.en_ligne?'<i></i>':''}</span><span class="p">${esc(m.pseudo)}${m.id===G.membre_id?' <span class="meta">(moi)</span>':''}${m.id===GS.groupe.admin_id?' <span class="meta">👑</span>':''}</span><span class="s">${m.semaine} ⭐</span>${admin&&m.id!==G.membre_id?`<button class="mini" style="color:var(--soft)" onclick="askExclude('${m.id}','${esc(m.pseudo).replace(/'/g,'&#39;')}')">⋯</button>`:''}</div>`).join('')}
     <p class="meta" style="margin:10px 0 0">Le classement repart à zéro chaque lundi. Gagne des points en faisant des défis, des quiz solo et en ajoutant des questions.</p>
   </div>
   <button class="btn ghost full" onclick="openInvite()">📨 Inviter des amis (code ${esc(G.code)})</button>`;
@@ -466,7 +538,7 @@ function djCard(){
 function djClassement(id){
   const d=(DJL||[]).find(x=>x.id===id);if(!d)return;
   modal(`<h2>🏆 Défi du jour · ${d.taille} questions</h2>
-  ${d.classement.length?d.classement.map((c,i)=>`<div class="rank"><span class="n">${c.fini?(i<3?['🥇','🥈','🥉'][i]:i+1):'…'}</span><span class="a">${esc(c.avatar)}</span><span class="p">${esc(c.pseudo)}${c.id===G.membre_id?' <span class="meta">(moi)</span>':''}<br><span class="meta">${c.fini?`${c.bonnes}/${d.total} bonnes réponses`:`en cours : ${c.idx}/${d.total}`}</span></span><span class="s">${c.score}</span></div>`).join(''):'<p class="empty">Personne n\'a encore joué. Sois le premier !</p>'}`);
+  ${d.classement.length?d.classement.map((c,i)=>`<div class="rank"><span class="n">${c.fini?(i<3?['🥇','🥈','🥉'][i]:i+1):'…'}</span><span class="a">${AV(c.avatar)}</span><span class="p">${esc(c.pseudo)}${c.id===G.membre_id?' <span class="meta">(moi)</span>':''}<br><span class="meta">${c.fini?`${c.bonnes}/${d.total} bonnes réponses`:`en cours : ${c.idx}/${d.total}`}</span></span><span class="s">${c.score}</span></div>`).join(''):'<p class="empty">Personne n\'a encore joué. Sois le premier !</p>'}`);
 }
 async function openDJ(id){DJ={id,s:null,recv:0,rep:null,busy:false,sent:false};TAB='defis';render();await djLoad();}
 async function djLoad(){
@@ -542,7 +614,7 @@ function renderDefi(force){
   let h='';
   if(s.etat==='attente'){
     h=`<h1>⚡ Salle d'attente</h1><p class="sub">${s.matiere?tag(s.matiere):'Toutes matières · '}${s.total} questions · ${s.duree} secondes par question</p>
-    <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
+    <div class="card">${s.joueurs.map(j=>`<div class="rank"><span class="a">${AV(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span>${j.id===s.createur_id?'<span class="meta">organise</span>':''}</div>`).join('')}</div>
     ${s.createur_id===G.membre_id?`${s.joueurs.length<2?`<button class="btn mint full" disabled>⏳ En attente d'autres joueurs…</button><p class="meta center" style="margin-top:8px">Il faut au moins 2 joueurs pour lancer le défi. Les autres membres du groupe sont prévenus.</p>`:`<button class="btn mint full" onclick="startDefi()">▶ Lancer le défi (${s.joueurs.length} joueurs)</button><p class="meta center" style="margin-top:8px">Attends que tout le monde ait rejoint avant de lancer !</p>`}`
       :`<p class="center sub"><span class="dots"><span></span><span></span><span></span></span><br>On attend que le créateur lance le défi…</p>`}
     <div class="row" style="margin-top:14px"><button class="btn light" onclick="quitDefi()">Quitter</button>${s.createur_id===G.membre_id?`<button class="btn light" onclick="cancelDefi()">Annuler le défi</button>`:''}</div>`;
@@ -563,15 +635,15 @@ function renderDefi(force){
     <div class="qtext" style="font-size:18px">${esc(q.texte)}</div>
     <div class="answers">${q.choix.map((c,k)=>`<div class="ans c${k} ${k===q.bonne?'good':'dim'}"><span class="sh">${SHAPES[k]}</span><span style="flex:1">${esc(c)}</span><span>${rep[k]||0}</span></div>`).join('')}</div>
     ${q.explication?`<div class="banner sky"><div class="ic">💡</div><div>${esc(q.explication)}</div></div>`:''}
-    <div class="card">${s.joueurs.slice(0,5).map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}${j.id===G.membre_id?' (moi)':''}</span><span class="s">${j.score}</span></div>`).join('')}</div>
+    <div class="card">${s.joueurs.slice(0,5).map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${AV(j.avatar)}</span><span class="p">${esc(j.pseudo)}${j.id===G.membre_id?' (moi)':''}</span><span class="s">${j.score}</span></div>`).join('')}</div>
     ${chef?`<button class="btn light full" onclick="skipNext()">Question suivante →</button>`:''}`;
   }else{
     const top=s.joueurs.slice(0,3),me=s.joueurs.findIndex(j=>j.id===G.membre_id);
     const order=[1,0,2].filter(i=>top[i]);const H=[110,150,80],C=['#C0C0C0','#F4B740','#D08A5A'];
     h=`<h1 class="center">🏆 Résultats</h1>
-    <div class="podium">${order.map(i=>`<div><div style="font-size:34px">${esc(top[i].avatar)}</div><div style="font-weight:600;font-size:14px">${esc(top[i].pseudo)}</div><div class="meta">${top[i].score}</div><div class="blk" style="height:${H[[1,0,2].indexOf(i)]}px;background:${C[[1,0,2].indexOf(i)]}">${i+1}</div></div>`).join('')}</div>
+    <div class="podium">${order.map(i=>`<div><div style="font-size:34px">${AV(top[i].avatar)}</div><div style="font-weight:600;font-size:14px">${esc(top[i].pseudo)}</div><div class="meta">${top[i].score}</div><div class="blk" style="height:${H[[1,0,2].indexOf(i)]}px;background:${C[[1,0,2].indexOf(i)]}">${i+1}</div></div>`).join('')}</div>
     ${me>=0?`<p class="center" style="font-weight:600">Tu termines ${me===0?'1re 🥇':(me+1)+'e'} avec ${s.joueurs[me].score} points !</p>`:''}
-    <div class="card">${s.joueurs.map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${esc(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span><span class="s">${j.score}</span></div>`).join('')}</div>
+    <div class="card">${s.joueurs.map((j,i)=>`<div class="rank"><span class="n">${i+1}</span><span class="a">${AV(j.avatar)}</span><span class="p">${esc(j.pseudo)}</span><span class="s">${j.score}</span></div>`).join('')}</div>
     <p class="meta center">Les points du défi sont ajoutés au classement de la semaine.</p>
     <button class="btn full" onclick="quitDefi()">Retour au groupe</button>`;
     if(!DF.fete&&me===0&&s.joueurs[0].score>0){DF.fete=true;confetti();}
@@ -594,7 +666,7 @@ const REACTS=['👏','🔥','😂','💪','❤️','🎉','😮','🙏','👍','
 function msgHtml(m){
   if(BLOQ.includes(m.membre_id))return `<div class="msg them" data-id="${m.id}" style="opacity:.7"><span class="meta">🙈 Message de ${esc(m.pseudo)} (masqué par toi)</span> <button class="mini" onclick="unblockUser('${m.membre_id}')">Afficher</button></div>`;
   const me=m.membre_id===G.membre_id;
-  return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w">${esc(m.avatar)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span>${me?`<button class="flag" style="opacity:1;font-size:17px;padding-left:8px" title="Supprimer mon message" aria-label="Supprimer mon message" onclick="askDeleteMsg(${m.id})">🗑️</button>`:`<button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button>`}</div>`;
+  return `<div class="msg ${me?'me':'them'}" data-id="${m.id}">${me?'':`<div class="w" style="display:flex;align-items:center;gap:6px">${AV(m.avatar,22)} ${esc(m.pseudo)}</div>`}${esc(m.texte).replace(/\n/g,'<br>')}<span class="t">${hhmm(m.cree_le)}</span>${me?`<button class="flag" style="opacity:1;font-size:17px;padding-left:8px" title="Supprimer mon message" aria-label="Supprimer mon message" onclick="askDeleteMsg(${m.id})">🗑️</button>`:`<button class="flag" title="Options" onclick="msgMenu(${m.id})">⋯</button>`}</div>`;
 }
 function renderChat(){
   $('#main').innerHTML=`
@@ -777,7 +849,7 @@ function openSettings(){
   const admin=G&&GS&&GS.groupe.admin_id===G.membre_id;
   const bl=BLOQ.length;
   modal(`<h2>⚙️ Réglages</h2>
-  <div class="card"><b>${esc(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administrateur':''}</div>`:''}</div>
+  <div class="card"><b>${AV(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administrateur':''}</div>`:''}</div>
   ${installHtml()}
   ${notifHtml()}
   ${GROUPS.length>1||G?`<button class="btn light full" style="margin-bottom:6px" onclick="openGroups()">👭 Mes groupes (${GROUPS.length}) · changer / ajouter</button>`:''}
@@ -789,7 +861,7 @@ function openSettings(){
     <button class="btn coral full" style="margin-top:10px" onclick="askLeave()">Quitter le groupe</button></div>`:''}
   <div class="card"><h2>👨‍👩‍👧 Pour les parents</h2><p style="margin:0;font-size:14px">Révizz ne demande ni e-mail ni nom de famille. Les messages passent par un filtre (insultes, numéros, adresses, réseaux sociaux, liens), peuvent être signalés et sont effacés après 30 jours. L'administrateur d'un groupe peut retirer un membre. Quitter le groupe efface le pseudo, les messages et les points de l'enfant.<br><br>En cas de harcèlement : <b>3020</b> (gratuit). Enfance en danger : <b>119</b> (gratuit, 24h/24).</p></div>
   ${GROUPS.length?`<button class="btn ghost full" style="margin-bottom:10px" onclick="openTransfert()">📱 Utiliser Révizz sur un autre téléphone</button>`:''}
-  <button class="btn light full" onclick="resetProfil()">Changer de pseudo / d'avatar</button>`);
+  <button class="btn light full" onclick="resetProfil()">Changer de pseudo / de skin</button>`);
 }
 function choisirNiveauUneFois(){
   modal(`<h2>🎓 Niveau du groupe</h2><p class="sub">Choisis le niveau de ton groupe. <b>Attention : ce choix est définitif.</b> Il adapte les matières et le temps de réponse aux défis.</p>
