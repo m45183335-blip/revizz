@@ -139,6 +139,7 @@ label.l{display:block;font-weight:600;margin:12px 0 6px}
 /* ===== configuration du serveur ===== */
 const API_URL = 'https://fbhhdyamgltswycweuea.supabase.co';
 const API_KEY = 'sb_publishable_xe-1hVpfX1IAT0RtALPY2g_tzGI-LGn';
+const VAPID_PUBLIC = 'BK2SaawaW5JGzI7NyT4EXdt8-tQKYiFFerZ9FP6lZNkkmeBYCByL9smjUS5jekjP-SkOGsoXNMgDqvJ0V7QY5G8';
 
 /* ===== utilitaires ===== */
 const $=s=>document.querySelector(s);
@@ -321,7 +322,7 @@ function setGroup(r,token){
   G={membre_id:r.membre_id,token,groupe_id:r.groupe_id,code:r.code,nom:r.nom,niveau:r.niveau||null,seen:0};CN=null;GROUPS.push(G);JOINING=false;saveGroups();
   resetGroupState();
   if(location.search)history.replaceState(null,'',location.pathname);
-  TAB='defis';go('defis');poll();
+  TAB='defis';go('defis');poll();syncPush();
 }
 function inviteLink(){return location.origin+location.pathname+'?code='+G.code;}
 function openInvite(){
@@ -598,6 +599,7 @@ function msgHtml(m){
 function renderChat(){
   $('#main').innerHTML=`
   <div class="banner sun" style="margin-top:14px;font-size:14px"><div class="ic">🛡️</div><div>Sois gentil 💜 Pas de numéro, d'adresse, de réseau social ni de lien. Un message te gêne ? Touche ⋯ pour le signaler, et parles-en à un adulte. Tu peux supprimer tes propres messages avec 🗑️.</div></div>
+  ${notifSupport()&&Notification.permission==='default'&&!LS.get('notifs',false)&&!LS.get('notif_rappel_vu',false)?`<div class="banner violet" style="font-size:14px"><div class="ic">🔔</div><div style="flex:1">Active les notifications pour ne rater aucun message !<br><button class="mini" onclick="activerNotifs()">Activer</button> &nbsp; <button class="mini" style="color:var(--soft)" onclick="LS.set('notif_rappel_vu',true);renderChat()">Plus tard</button></div></div>`:''}
   <div class="chat" id="chat">${MSGS.length?MSGS.map(msgHtml).join(''):'<p class="empty">Aucun message pour l\'instant. Dis bonjour ! 👋<br><span class="meta">Tu vois les messages envoyés depuis ton arrivée dans le groupe.</span></p>'}</div><div id="chatEnd"></div>
   <div class="composer">
     <div class="reacts">${REACTS.map(r=>`<button onclick="sendMsg('${r}')">${r}</button>`).join('')}</div>
@@ -777,6 +779,7 @@ function openSettings(){
   modal(`<h2>⚙️ Réglages</h2>
   <div class="card"><b>${esc(P.avatar)} ${esc(P.pseudo)}</b>${G?`<div class="meta">Groupe « ${esc(G.nom)} » ${admin?'· 👑 administrateur':''}</div>`:''}</div>
   ${installHtml()}
+  ${notifHtml()}
   ${GROUPS.length>1||G?`<button class="btn light full" style="margin-bottom:6px" onclick="openGroups()">👭 Mes groupes (${GROUPS.length}) · changer / ajouter</button>`:''}
   ${G?`<div class="card"><h2>👭 Groupe « ${esc(G.nom)} »</h2><div class="codebox">${esc(G.code)}</div>
     <button class="btn ghost full" onclick="openInvite()">📨 Inviter des amis</button>
@@ -829,13 +832,60 @@ async function recupCompte(){
     let n=0;gs.forEach(g=>{if(!GROUPS.some(x=>x.groupe_id===g.groupe_id)&&GROUPS.length<MAX_GROUPES){GROUPS.push({membre_id:g.membre_id,token,groupe_id:g.groupe_id,code:g.code,nom:g.nom,niveau:g.niveau,seen:0});n++;}});
     G=GROUPS.find(x=>x.groupe_id===gs[0].groupe_id)||GROUPS[0];JOINING=false;saveGroups();resetGroupState();closeModal();
     toast(n?`C'est bon ! ${n} groupe${n>1?'s':''} récupéré${n>1?'s':''} 🎉`:'Tes groupes étaient déjà sur ce téléphone',4000);
-    TAB='defis';go('defis');poll();
+    TAB='defis';go('defis');poll();syncPush();
   }catch(e){toast(errMsg(e),4000);}
 }
 async function newCode(){try{const r=await call('changer_code');G.code=r.code;saveGroups();openSettings();toast('Nouveau code : '+r.code,4000);}catch(e){toast(errMsg(e));}}
 function askLeave(){modal(`<h2>Quitter le groupe ?</h2><p class="sub">Ton pseudo, tes messages et tes points seront effacés. Tes questions restent dans la banque, sans ton nom. Tu pourras rejoindre un groupe plus tard.</p><div class="row"><button class="btn light" onclick="openSettings()">Annuler</button><button class="btn coral" onclick="doLeave()">Quitter</button></div>`);}
 async function doLeave(){try{await call('quitter_groupe');}catch(e){}closeModal();leaveLocal();toast('Tu as quitté le groupe');}
 function resetProfil(){if(GROUPS.length){toast("Quitte d'abord tes groupes pour changer de pseudo");return;}P=null;LS.set('profil',null);closeModal();render();}
+
+/* ===== notifications ===== */
+const estIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+const notifSupport=()=>('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window)&&location.protocol==='https:';
+function notifHtml(){
+  if(!GROUPS.length)return '';
+  const on=LS.get('notifs',false)&&notifSupport()&&Notification.permission==='granted';
+  let corps;
+  if(!notifSupport())corps=estIOS()&&!standalone()?`<p style="margin:0;font-size:15px">Sur iPhone, ajoute d'abord Révizz à ton écran d'accueil (Partager ⬆️ → « Sur l'écran d'accueil »), puis ouvre l'appli depuis l'icône pour activer les notifications.</p>`:`<p style="margin:0;font-size:15px">Ce navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou Safari (iPhone, appli ajoutée à l'écran d'accueil).</p>`;
+  else if(Notification.permission==='denied')corps=`<p style="margin:0;font-size:15px">Les notifications sont bloquées pour Révizz. Autorise-les dans les réglages du téléphone (Notifications → Révizz ou le navigateur), puis reviens ici.</p>`;
+  else corps=on?`<p style="margin:0 0 10px;font-size:15px">✅ Tu reçois une notification à chaque nouveau message dans tes groupes.</p><button class="btn light full" onclick="desactiverNotifs()">Désactiver les notifications</button>`
+               :`<p style="margin:0 0 10px;font-size:15px">Reçois une notification à chaque nouveau message, même quand l'appli est fermée.</p><button class="btn full" onclick="activerNotifs()">🔔 Activer les notifications</button>`;
+  return `<div class="card"><h2>🔔 Notifications</h2>${corps}</div>`;
+}
+function b64ToU8(b){const p='='.repeat((4-b.length%4)%4);const s=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...s].map(c=>c.charCodeAt(0)));}
+async function abonnementPush(creer){
+  const reg=await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub&&creer)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC)});
+  return sub;
+}
+async function syncPush(){
+  if(!LS.get('notifs',false)||!notifSupport()||Notification.permission!=='granted'||!GROUPS.length)return;
+  try{const sub=await abonnementPush(true);if(!sub)return;const j=sub.toJSON();
+    await Promise.all(GROUPS.map(g=>rpc('enregistrer_push',{p_membre:g.membre_id,p_token:g.token,p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth}).catch(()=>{})));
+  }catch(e){}
+}
+async function activerNotifs(){
+  if(!notifSupport()){toast('Notifications non disponibles ici');return;}
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('Tu n\'as pas autorisé les notifications');openSettings();return;}
+    LS.set('notifs',true);await syncPush();toast('🔔 Notifications activées !');
+  }catch(e){toast('Impossible d\'activer les notifications sur ce téléphone');}
+  if($('#ov'))openSettings();if(TAB==='chat')renderChat();
+}
+async function desactiverNotifs(){
+  LS.set('notifs',false);
+  try{const sub=await abonnementPush(false);if(sub){const ep=sub.endpoint;await Promise.all(GROUPS.map(g=>rpc('retirer_push',{p_membre:g.membre_id,p_token:g.token,p_endpoint:ep}).catch(()=>{})));await sub.unsubscribe();}}catch(e){}
+  toast('Notifications désactivées');openSettings();
+}
+function ouvrirGroupeDepuisNotif(gid){
+  const g=GROUPS.find(x=>x.groupe_id===gid);
+  if(g&&(!G||G.groupe_id!==gid)){G=g;JOINING=false;saveGroups();resetGroupState();}
+  closeModal();TAB='chat';go('chat');poll();
+}
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='ouvrir')ouvrirGroupeDepuisNotif(e.data.groupe_id);});
 
 /* ===== installation sur l'écran d'accueil ===== */
 let installEvt=null;
@@ -854,7 +904,10 @@ if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventLis
 /* ===== démarrage ===== */
 const invCode=new URLSearchParams(location.search).get('code');
 if(invCode&&GROUPS.length){const g=GROUPS.find(x=>x.code===invCode.toUpperCase());if(g){G=g;saveGroups();history.replaceState(null,'',location.pathname);}else JOINING=true;}
+const ouvrirGid=new URLSearchParams(location.search).get('ouvrir');
+if(ouvrirGid){history.replaceState(null,'',location.pathname);const g=GROUPS.find(x=>x.groupe_id===ouvrirGid);if(g){G=g;saveGroups();}TAB='chat';}
 go(TAB);if(G)poll();
+setTimeout(syncPush,3000);
 </script>
 </body>
 </html>
