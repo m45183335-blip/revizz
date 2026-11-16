@@ -1038,7 +1038,7 @@ function renderAgenda(){
     <div class="chips">${(G?MATS():MATIERES).map(m=>`<button class="chip ${agM===m.id?'on':''}" onclick="agKeep();agM='${m.id}';renderAgenda()">${m.e} ${m.n}</button>`).join('')}</div>
     <input type="text" id="agT" maxlength="160" placeholder="Ex. : exercices 3 et 4 page 52">
     ${agPhoto?`<div style="position:relative;margin-top:10px"><img src="${agPhoto}" alt="Photo du devoir" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;display:block"><button class="xb" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border-radius:999px;width:34px;height:34px" onclick="agKeep();agPhoto=null;renderAgenda()" aria-label="Retirer la photo">✕</button></div>`
-      :`<button class="btn ghost full" style="margin-top:10px" onclick="agKeep();prendrePhoto()">📷 Prendre une photo du devoir</button>`}
+      :`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" style="flex:1" onclick="agKeep();prendrePhoto(true)">📷 Prendre une photo</button><button class="btn ghost" style="flex:1" onclick="agKeep();prendrePhoto(false)">🖼️ Galerie</button></div>`}
     <label class="l">Pour le</label><input type="date" id="agD" value="${addDays(t,1)}" min="${t}">
     <button class="btn full" style="margin-top:12px" onclick="addDevoir()">Ajouter</button></div>
   <div class="card"><h2>À faire</h2>${todo.length?todo.map(taskHtml).join(''):'<p class="empty">Rien à faire 🎉</p>'}</div>
@@ -1050,20 +1050,40 @@ function renderAgenda(){
 function agKeep(){const a=$('#agT');if(a)window._agT=a.value;const d=$('#agD');if(d)window._agD=d.value;}
 /* photos des devoirs : gardées sur le téléphone (IndexedDB) */
 let agPhoto=null;
-const PDB={db:null,async open(){if(this.db)return this.db;this.db=await new Promise((ok,ko)=>{const r=indexedDB.open('revizz_photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);});return this.db;},
-  async op(mode,fn){const db=await this.open();return new Promise((ok,ko)=>{const tx=db.transaction('p',mode),st=tx.objectStore('p');const r=fn(st);tx.oncomplete=()=>ok(r&&r.result);tx.onerror=()=>ko(tx.error);});},
-  set(k,v){return this.op('readwrite',st=>st.put(v,k));},get(k){return this.op('readonly',st=>st.get(k));},del(k){return this.op('readwrite',st=>st.delete(k));}};
-function prendrePhoto(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');
-  inp.onchange=async()=>{const f=inp.files&&inp.files[0];if(!f)return;try{agPhoto=await reduirePhoto(f);renderAgenda();}catch(e){toast("Impossible de lire cette photo");}};
-  inp.click();
+const PDB={db:null,async open(){if(this.db)return this.db;if(!window.indexedDB)throw new Error('pas_idb');this.db=await new Promise((ok,ko)=>{const r=indexedDB.open('revizz_photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);r.onblocked=()=>ko(new Error('bloque'));});return this.db;},
+  async op(mode,fn){const db=await this.open();return new Promise((ok,ko)=>{const tx=db.transaction('p',mode),st=tx.objectStore('p');const r=fn(st);tx.oncomplete=()=>ok(r&&r.result);tx.onerror=()=>ko(tx.error);tx.onabort=()=>ko(tx.error);});},
+  // secours : si IndexedDB est indisponible (navigation privée, vieux navigateur), on garde la photo dans le stockage simple
+  async set(k,v){try{await this.op('readwrite',st=>st.put(v,k));}catch(e){localStorage.setItem('rv_photo_'+k,v);}},
+  async get(k){let v=null;try{v=await this.op('readonly',st=>st.get(k));}catch(e){}return v||localStorage.getItem('rv_photo_'+k);},
+  async del(k){try{localStorage.removeItem('rv_photo_'+k);}catch(e){}try{await this.op('readwrite',st=>st.delete(k));}catch(e){}}};
+// brouillon gardé si le téléphone recharge la page en ouvrant l'appareil photo
+function agBrouillon(){try{sessionStorage.setItem('rv_ag_brouillon',JSON.stringify({m:agM,t:window._agT||'',d:window._agD||''}));}catch(e){}}
+function agRestaure(){try{const b=JSON.parse(sessionStorage.getItem('rv_ag_brouillon')||'null');if(b){agM=b.m;window._agT=b.t;window._agD=b.d;}}catch(e){}}
+agRestaure();
+function champPhoto(camera){
+  const id=camera?'photoCam':'photoGal';let inp=document.getElementById(id);
+  if(!inp){ // champ gardé dans la page : sinon certains téléphones le « perdent » pendant que l'appareil photo est ouvert
+    inp=document.createElement('input');inp.type='file';inp.id=id;inp.accept='image/*';if(camera)inp.setAttribute('capture','environment');
+    inp.style.cssText='position:fixed;left:-9999px;width:1px;height:1px;opacity:0';
+    inp.addEventListener('change',async()=>{const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+      toast('Photo en cours…');
+      try{agPhoto=await reduirePhoto(f);if(TAB==='agenda')renderAgenda();}catch(e){toast("Ce téléphone n'arrive pas à lire cette photo. Essaie « 🖼️ Galerie » ou une capture d'écran.");}});
+    document.body.appendChild(inp);
+  }
+  return inp;
 }
+function prendrePhoto(camera){agBrouillon();champPhoto(camera).click();}
 async function reduirePhoto(file){
-  const url=URL.createObjectURL(file);
-  try{const img=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=url;});
-    const k=Math.min(1,1400/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
-    c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',0.8);}
-  finally{URL.revokeObjectURL(url);}
+  const MAX=1280;let src=null,w=0,h=0,libere=()=>{};
+  if(window.createImageBitmap){try{const bm=await createImageBitmap(file,{imageOrientation:'from-image'});src=bm;w=bm.width;h=bm.height;libere=()=>bm.close&&bm.close();}catch(e){src=null;}}
+  if(!src){const url=URL.createObjectURL(file);try{const img=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ko(new Error('illisible'));i.src=url;});
+      src=img;w=img.naturalWidth;h=img.naturalHeight;}finally{setTimeout(()=>URL.revokeObjectURL(url),5000);}}
+  if(!w||!h)throw new Error('illisible');
+  const k=Math.min(1,MAX/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
+  const cx=c.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);cx.drawImage(src,0,0,c.width,c.height);libere();
+  const out=c.toDataURL('image/jpeg',0.75);c.width=c.height=0;
+  if(!out||out.length<1000)throw new Error('illisible');
+  return out;
 }
 async function voirPhoto(id){
   let src=null;try{src=await PDB.get(id);}catch(e){}
@@ -1077,11 +1097,11 @@ async function addDevoir(){
   if(!agM){toast('Choisis la matière');return;}
   if(!t&&!agPhoto){toast('Écris le devoir ou prends-le en photo');return;}
   const id=uid(),item={id,matiere:agM,texte:t||'Devoir en photo 📷',pour:d||addDays(dayStr(),1),fait:false,photo:!!agPhoto};
-  if(agPhoto){try{await PDB.set(id,agPhoto);}catch(e){toast("La photo n'a pas pu être enregistrée sur ce téléphone");item.photo=false;if(!t)return;}}
+  if(agPhoto){try{await PDB.set(id,agPhoto);}catch(e){toast("Le téléphone est plein : la photo n'a pas pu être enregistrée");item.photo=false;if(!t)return;}}
   AG.items.push(item);
   const enTrop=AG.items.length>200?AG.items.slice(0,AG.items.length-200):[];
   enTrop.forEach(x=>{if(x.photo)PDB.del(x.id).catch(()=>{});});
-  AG.items=AG.items.slice(-200);LS.set('agenda',AG);agM=null;agPhoto=null;window._agT='';window._agD='';renderAgenda();toast('Devoir ajouté 👍');
+  AG.items=AG.items.slice(-200);LS.set('agenda',AG);agM=null;agPhoto=null;window._agT='';window._agD='';try{sessionStorage.removeItem('rv_ag_brouillon');}catch(e){}renderAgenda();toast('Devoir ajouté 👍');
 }
 function toggleDevoir(id){const i=AG.items.find(x=>x.id===id);if(i){i.fait=!i.fait;LS.set('agenda',AG);renderAgenda();}}
 function delDevoir(id){const i=AG.items.find(x=>x.id===id);if(i&&i.photo)PDB.del(id).catch(()=>{});AG.items=AG.items.filter(x=>x.id!==id);LS.set('agenda',AG);renderAgenda();}
